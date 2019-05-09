@@ -3,7 +3,7 @@ package com.transferwise.common.gracefulshutdown.config;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties("tw-graceful-shutdown")
+@ConfigurationProperties(value = "tw-graceful-shutdown", ignoreUnknownFields = false)
 @Data
 @SuppressWarnings("checkstyle:magicnumber")
 public class GracefulShutdownProperties {

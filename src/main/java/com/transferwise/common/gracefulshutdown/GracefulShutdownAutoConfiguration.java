@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConditionalOnProperty(value = "tw-boot.graceful-shutdown.enable", matchIfMissing = true)
+@ConditionalOnProperty(value = "tw-graceful-shutdown.enable", matchIfMissing = true)
 @EnableConfigurationProperties({GracefulShutdownProperties.class, RequestCountStrategyProperties.class})
 @AutoConfigureAfter(name = {"org.springframework.cloud.netflix.eureka.EurekaClientAutoConfiguration",
         "org.springframework.boot.autoconfigure.jms.JmsAutoConfiguration"})
@@ -23,13 +23,13 @@ public class GracefulShutdownAutoConfiguration {
     private RequestCountStrategyProperties requestCountStrategyProperties;
 
     @Bean
-    @ConditionalOnProperty(value = "tw-boot.graceful-shutdown.health-indicator.enabled", matchIfMissing = true)
+    @ConditionalOnProperty(value = "tw-graceful-shutdown.health-indicator.enabled", matchIfMissing = true)
     public GracefulShutdownHealthIndicator gracefulShutdownHealthIndicator() {
         return new GracefulShutdownHealthIndicator();
     }
 
     @Bean
-    @ConditionalOnProperty(value = "tw-boot.graceful-shutdown.request-count-strategy.enabled", matchIfMissing = true)
+    @ConditionalOnProperty(value = "tw-graceful-shutdown.request-count-strategy.enabled", matchIfMissing = true)
     public FilterRegistrationBean requestCountGracefulShutdownStrategyFilter() {
         FilterRegistrationBean registrationBean = new FilterRegistrationBean();
         registrationBean.setFilter(requestCountGracefulShutdownStrategy());
@@ -38,7 +38,7 @@ public class GracefulShutdownAutoConfiguration {
     }
 
     @Bean
-    @ConditionalOnProperty(value = "tw-boot.graceful-shutdown.request-count-strategy.enabled", matchIfMissing = true)
+    @ConditionalOnProperty(value = "tw-graceful-shutdown.request-count-strategy.enabled", matchIfMissing = true)
     public RequestCountGracefulShutdownStrategy requestCountGracefulShutdownStrategy() {
         return new RequestCountGracefulShutdownStrategy();
     }
@@ -51,7 +51,7 @@ public class GracefulShutdownAutoConfiguration {
     @Configuration
     protected static class JmsShutdownConfiguration {
         @ConditionalOnClass(name = "org.springframework.jms.config.JmsListenerEndpointRegistry")
-        @ConditionalOnProperty(value = "tw-boot.graceful-shutdown.jms-strategy.enabled", matchIfMissing = true)
+        @ConditionalOnProperty(value = "tw-graceful-shutdown.jms-strategy.enabled", matchIfMissing = true)
         @Bean
         public JmsGracefulShutdownStrategy jmsGracefulShutdownStrategy() {
             return new JmsGracefulShutdownStrategy();
@@ -61,7 +61,7 @@ public class GracefulShutdownAutoConfiguration {
     @Configuration
     protected static class QuartzShutdownConfiguration {
         @ConditionalOnBean(type = "org.quartz.Scheduler")
-        @ConditionalOnProperty(value = "tw-boot.graceful-shutdown.quartz-strategy.enabled", matchIfMissing = true)
+        @ConditionalOnProperty(value = "tw-graceful-shutdown.quartz-strategy.enabled", matchIfMissing = true)
         @Bean
         public QuartzGracefulShutdownStrategy quartzGracefulShutdownStrategy() {
             return new QuartzGracefulShutdownStrategy();
@@ -71,7 +71,7 @@ public class GracefulShutdownAutoConfiguration {
     @Configuration
     protected static class EurekaShutdownConfiguration {
         @ConditionalOnClass(name = "org.springframework.cloud.netflix.eureka.serviceregistry.EurekaRegistration")
-        @ConditionalOnProperty(value = "tw-boot.graceful-shutdown.eureka-strategy.enabled", matchIfMissing = true)
+        @ConditionalOnProperty(value = "tw-graceful-shutdown.eureka-strategy.enabled", matchIfMissing = true)
         @Bean
         public EurekaGracefulShutdownStrategy eurekaGracefulShutdownStrategy() {
             return new EurekaGracefulShutdownStrategy();

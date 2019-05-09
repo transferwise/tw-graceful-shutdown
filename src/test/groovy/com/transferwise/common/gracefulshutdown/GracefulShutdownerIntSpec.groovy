@@ -12,7 +12,7 @@ import org.springframework.test.context.ActiveProfiles
 import spock.lang.Specification
 
 @ActiveProfiles(["test"])
-@SpringBootTest(classes = [TestApplication], properties = ["tw-boot.graceful-shutdown.clientsReactionTimeMs=1", "tw-boot.graceful-shutdown.shutdownTimeoutMs=1"])
+@SpringBootTest(classes = [TestApplication], properties = ["tw-graceful-shutdown.clientsReactionTimeMs=1", "tw-graceful-shutdown.shutdownTimeoutMs=1"])
 class GracefulShutdownerIntSpec extends Specification {
     @Autowired
     GracefulShutdowner gracefulShutdowner
