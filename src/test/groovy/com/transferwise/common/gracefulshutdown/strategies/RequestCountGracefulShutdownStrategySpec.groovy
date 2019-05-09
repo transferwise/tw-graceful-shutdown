@@ -1,6 +1,5 @@
 package com.transferwise.common.gracefulshutdown.strategies
 
-import com.transferwise.common.gracefulshutdown.strategies.RequestCountGracefulShutdownStrategy
 import spock.lang.Specification
 
 class RequestCountGracefulShutdownStrategySpec extends Specification {

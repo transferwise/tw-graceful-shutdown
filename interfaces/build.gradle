@@ -58,8 +58,8 @@ publishing {
             artifact sourcesJar
 
             pom {
-                name = 'TW Leader Selector'
-                description = 'TW Leader Selector - low noise consistent leader selector based on Curator Framework.'
+                name = 'TW Graceful Shutdown'
+                description = 'TW Graceful Shutdown - TW Graceful Shutdown - no noise and errors during releases.'
                 licenses {
                     license {
                         name = 'The Apache License, Version 2.0, Copyright 2019 TransferWise Ltd'
