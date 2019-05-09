@@ -1,0 +1,5 @@
+rootProject.name = "tw-graceful-shutdown"
+
+include 'interfaces'
+
+project(":interfaces").name = "tw-graceful-shutdown-interfaces"

@@ -1,0 +1,88 @@
+plugins {
+    id 'net.researchgate.release'
+    id 'java-library'
+    id 'maven-publish'
+    id 'groovy'
+    id 'checkstyle'
+}
+
+group = 'com.transferwise.common'
+
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
+
+jar {
+    manifest {
+        attributes(
+                "Implementation-Title": "Transferwise Graceful Shutdown Interfaces",
+                "Implementation-Version": version
+        )
+    }
+}
+
+compileJava {
+    options.encoding = 'utf-8'
+    options.compilerArgs << '-parameters'
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.boot:spring-boot-starter-parent:2.1.4.RELEASE"
+    }
+}
+
+release {
+    tagTemplate = '$name-$version'
+    failOnUnversionedFiles = true
+}
+
+afterReleaseBuild.dependsOn publish
+
+ext.artifactoryUser = project.hasProperty("artifactoryUser") ? project.artifactoryUser : System.env.ARTIFACTORY_USER as String
+ext.artifactoryPassword = project.hasProperty("artifactoryPassword") ? project.artifactoryPassword : System.env.ARTIFACTORY_PASSWORD as String
+
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allJava
+    archiveClassifier = 'sources'
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifact sourcesJar
+
+            pom {
+                name = 'TW Leader Selector'
+                description = 'TW Leader Selector - low noise consistent leader selector based on Curator Framework.'
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0, Copyright 2019 TransferWise Ltd'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'onukristo'
+                        name = 'Kristo Kuusküll'
+                    }
+                }
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            url "https://arti.tw.ee/artifactory/libs-${project.version.endsWith('-SNAPSHOT') ? 'snapshot' : 'release'}-local"
+            credentials {
+                username = artifactoryUser
+                password = artifactoryPassword
+            }
+        }
+    }
+}

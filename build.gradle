@@ -1,0 +1,152 @@
+plugins {
+    id "net.researchgate.release" version "2.8.0"
+    id 'java-library'
+    id 'maven-publish'
+    id 'groovy'
+    id 'com.github.spotbugs' version '1.7.1'
+    id 'io.spring.dependency-management' version '1.0.7.RELEASE'
+    id 'checkstyle'
+}
+
+group = 'com.transferwise.common'
+
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
+
+jar {
+    manifest {
+        attributes(
+                "Implementation-Title": "Transferwise Graceful Shutdown System",
+                "Implementation-Version": version
+        )
+    }
+}
+
+compileJava {
+    options.encoding = 'utf-8'
+    options.compilerArgs << '-parameters'
+}
+
+repositories {
+    maven {
+        url 'https://arti.tw.ee/artifactory/libs-release'
+    }
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.boot:spring-boot-starter-parent:2.1.4.RELEASE"
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:Greenwich.SR1"
+    }
+}
+
+configurations {
+    all {
+        exclude module: 'slf4j-log4j12'
+    }
+}
+
+dependencies {
+    annotationProcessor 'org.projectlombok:lombok'
+    compileOnly 'org.projectlombok:lombok'
+
+    implementation 'com.transferwise.boot:tw-graceful-shutdown-interfaces:1.0'
+    implementation 'com.transferwise.common:tw-base-utils:1.1'
+
+    compileOnly 'org.springframework.boot:spring-boot-actuator'
+    compileOnly 'org.springframework:spring-web'
+    compileOnly 'org.springframework:spring-jms'
+    compileOnly 'org.springframework:spring-context'
+    compileOnly 'org.springframework.cloud:spring-cloud-commons'
+    compileOnly 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+    compileOnly 'org.quartz-scheduler:quartz:2.3.0'
+    compileOnly 'javax.servlet:javax.servlet-api'
+
+    testAnnotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-actuator'
+    testImplementation 'org.springframework:spring-web'
+    testImplementation 'org.springframework:spring-jms'
+    testImplementation 'org.springframework:spring-context'
+    testImplementation 'org.springframework.cloud:spring-cloud-commons'
+    testImplementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+    testImplementation 'org.quartz-scheduler:quartz:2.3.0'
+    testImplementation 'javax.servlet:javax.servlet-api'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.spockframework:spock-core:1.2-groovy-2.5'
+    testImplementation 'org.spockframework:spock-spring:1.2-groovy-2.5'
+
+}
+
+release {
+    tagTemplate = '$name-$version'
+    failOnUnversionedFiles = true
+}
+
+afterReleaseBuild.dependsOn publish
+
+ext.artifactoryUser = project.hasProperty("artifactoryUser") ? project.artifactoryUser : System.env.ARTIFACTORY_USER as String
+ext.artifactoryPassword = project.hasProperty("artifactoryPassword") ? project.artifactoryPassword : System.env.ARTIFACTORY_PASSWORD as String
+
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allJava
+    archiveClassifier = 'sources'
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifact sourcesJar
+
+            pom {
+                name = 'TW Leader Selector'
+                description = 'TW Leader Selector - low noise consistent leader selector based on Curator Framework.'
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0, Copyright 2019 TransferWise Ltd'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'onukristo'
+                        name = 'Kristo Kuusküll'
+                    }
+                }
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            url "https://arti.tw.ee/artifactory/libs-${project.version.endsWith('-SNAPSHOT') ? 'snapshot' : 'release'}-local"
+            credentials {
+                username = artifactoryUser
+                password = artifactoryPassword
+            }
+        }
+    }
+}
+
+test {
+    testLogging {
+        events "passed", "skipped", "failed", "standardError"
+        showStackTraces = true
+        exceptionFormat = 'full'
+    }
+}
+
+spotbugs {
+    sourceSets = [sourceSets.main]
+    effort = "max"
+}
+
+tasks.withType(com.github.spotbugs.SpotBugsTask) {
+    reports {
+        xml.enabled false
+        html.enabled true
+    }
+}
