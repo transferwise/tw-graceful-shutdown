@@ -50,9 +50,10 @@ configurations {
 
 dependencies {
     annotationProcessor 'org.projectlombok:lombok'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     compileOnly 'org.projectlombok:lombok'
 
-    implementation 'com.transferwise.boot:tw-graceful-shutdown-interfaces:1.0'
+    implementation 'com.transferwise.common:tw-graceful-shutdown-interfaces:1.1'
     implementation 'com.transferwise.common:tw-base-utils:1.1'
 
     compileOnly 'org.springframework.boot:spring-boot-actuator'

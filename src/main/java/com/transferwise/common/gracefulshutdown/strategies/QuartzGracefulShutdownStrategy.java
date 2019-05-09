@@ -1,7 +1,7 @@
 package com.transferwise.common.gracefulshutdown.strategies;
 
-import com.transferwise.boot.gracefulshutdown.GracefulShutdownStrategy;
 import com.transferwise.common.baseutils.ExceptionUtils;
+import com.transferwise.common.gracefulshutdown.GracefulShutdownStrategy;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.Scheduler;
 import org.springframework.beans.factory.annotation.Autowired;

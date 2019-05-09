@@ -1,6 +1,6 @@
 package com.transferwise.common.gracefulshutdown.strategies;
 
-import com.transferwise.boot.gracefulshutdown.GracefulShutdownStrategy;
+import com.transferwise.common.gracefulshutdown.GracefulShutdownStrategy;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.actuate.health.AbstractHealthIndicator;

@@ -1,6 +1,5 @@
 package com.transferwise.common.gracefulshutdown;
 
-import com.transferwise.boot.gracefulshutdown.GracefulShutdownStrategy;
 import com.transferwise.common.baseutils.ExceptionUtils;
 import com.transferwise.common.gracefulshutdown.config.GracefulShutdownProperties;
 import lombok.extern.slf4j.Slf4j;
