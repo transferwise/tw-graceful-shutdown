@@ -2,7 +2,10 @@ package com.transferwise.common.gracefulshutdown;
 
 import com.transferwise.common.gracefulshutdown.config.GracefulShutdownProperties;
 import com.transferwise.common.gracefulshutdown.config.RequestCountStrategyProperties;
-import com.transferwise.common.gracefulshutdown.strategies.*;
+import com.transferwise.common.gracefulshutdown.strategies.EurekaGracefulShutdownStrategy;
+import com.transferwise.common.gracefulshutdown.strategies.GracefulShutdownHealthIndicator;
+import com.transferwise.common.gracefulshutdown.strategies.QuartzGracefulShutdownStrategy;
+import com.transferwise.common.gracefulshutdown.strategies.RequestCountGracefulShutdownStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -16,8 +19,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConditionalOnProperty(value = "tw-graceful-shutdown.enable", matchIfMissing = true)
 @EnableConfigurationProperties({GracefulShutdownProperties.class, RequestCountStrategyProperties.class})
-@AutoConfigureAfter(name = {"org.springframework.cloud.netflix.eureka.EurekaClientAutoConfiguration",
-        "org.springframework.boot.autoconfigure.jms.JmsAutoConfiguration"})
+@AutoConfigureAfter(name = {"org.springframework.cloud.netflix.eureka.EurekaClientAutoConfiguration"})
 public class GracefulShutdownAutoConfiguration {
     @Autowired
     private RequestCountStrategyProperties requestCountStrategyProperties;
@@ -46,16 +48,6 @@ public class GracefulShutdownAutoConfiguration {
     @Bean
     public GracefulShutdowner gracefulShutdowner() {
         return new GracefulShutdowner();
-    }
-
-    @Configuration
-    protected static class JmsShutdownConfiguration {
-        @ConditionalOnClass(name = "org.springframework.jms.config.JmsListenerEndpointRegistry")
-        @ConditionalOnProperty(value = "tw-graceful-shutdown.jms-strategy.enabled", matchIfMissing = true)
-        @Bean
-        public JmsGracefulShutdownStrategy jmsGracefulShutdownStrategy() {
-            return new JmsGracefulShutdownStrategy();
-        }
     }
 
     @Configuration
