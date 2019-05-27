@@ -148,9 +148,7 @@ public class GracefulShutdowner implements ApplicationListener<ApplicationReadyE
         if (event.getApplicationContext() == applicationContext) {
             started = true;
             try {
-                getStrategies().forEach((s) -> {
-                    s.applicationStarted();
-                });
+                getStrategies().forEach(GracefulShutdownStrategy::applicationStarted);
             } catch (Throwable t) {
                 log.error(t.getMessage(), t);
                 SpringApplication.exit(applicationContext, (ExitCodeGenerator) () -> 1);

@@ -54,7 +54,7 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
 
     implementation 'com.transferwise.common:tw-graceful-shutdown-interfaces:1.3.0'
-    implementation 'com.transferwise.common:tw-base-utils:1.2.0'
+    implementation 'com.transferwise.common:tw-base-utils:1.2.3'
 
     compileOnly 'org.springframework.boot:spring-boot-actuator'
     compileOnly 'org.springframework:spring-web'

@@ -5,7 +5,7 @@ import spock.lang.Specification
 class RequestCountGracefulShutdownStrategySpec extends Specification {
     def "permission for shutdown is correctly given"() {
         given:
-            RequestCountGracefulShutdownStrategy strategy = new RequestCountGracefulShutdownStrategy();
+            RequestCountGracefulShutdownStrategy strategy = new RequestCountGracefulShutdownStrategy()
         when:
             strategy.requestCount.incrementAndGet()
         then:

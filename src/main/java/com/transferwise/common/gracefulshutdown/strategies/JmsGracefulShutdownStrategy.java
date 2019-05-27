@@ -30,11 +30,7 @@ public class JmsGracefulShutdownStrategy implements GracefulShutdownStrategy {
 
         runningContainersCount.set(jmsListenerEndpointRegistry.getListenerContainers().size());
         log.info("Gracefully stopping {} JMS MessageListenerContainers.", runningContainersCount.get());
-        jmsListenerEndpointRegistry.getListenerContainers().forEach((container) -> {
-            container.stop(() -> {
-                runningContainersCount.decrementAndGet();
-            });
-        });
+        jmsListenerEndpointRegistry.getListenerContainers().forEach((container) -> container.stop(() -> runningContainersCount.decrementAndGet()));
     }
 
     @Override

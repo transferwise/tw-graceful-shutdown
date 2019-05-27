@@ -31,7 +31,7 @@ public class GracefulShutdownAutoConfiguration {
     @Bean
     @ConditionalOnProperty(value = "tw-graceful-shutdown.request-count-strategy.enabled", matchIfMissing = true)
     public FilterRegistrationBean requestCountGracefulShutdownStrategyFilter() {
-        FilterRegistrationBean registrationBean = new FilterRegistrationBean();
+        FilterRegistrationBean<RequestCountGracefulShutdownStrategy> registrationBean = new FilterRegistrationBean();
         registrationBean.setFilter(requestCountGracefulShutdownStrategy());
         registrationBean.setOrder(requestCountStrategyProperties.getFilterOrder());
         return registrationBean;
