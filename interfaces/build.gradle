@@ -1,88 +1,17 @@
-plugins {
-    id 'net.researchgate.release'
-    id 'java-library'
-    id 'maven-publish'
-    id 'groovy'
-    id 'checkstyle'
-}
+import com.github.spotbugs.SpotBugsTask
 
-group = 'com.transferwise.common'
+ext.projectName = 'TransferWise Graceful Shutdown Interfaces'
+ext.projectDescription = 'TransferWise Graceful Shutdown - no noise and errors during releases.'
+ext.projectGitHubRepoName = 'tw-graceful-shutdown'
+ext.projectArtifactName = 'tw-graceful-shutdown-interfaces'
 
-sourceCompatibility = '1.8'
-targetCompatibility = '1.8'
+apply from: '../build-common.gradle'
 
-jar {
-    manifest {
-        attributes(
-                "Implementation-Title": "Transferwise Graceful Shutdown Interfaces",
-                "Implementation-Version": version
-        )
-    }
-}
+tasks.withType(SpotBugsTask) {
+    effort = "max"
 
-compileJava {
-    options.encoding = 'utf-8'
-    options.compilerArgs << '-parameters'
-}
-
-repositories {
-    mavenCentral()
-    mavenLocal()
-}
-
-dependencyManagement {
-    imports {
-        mavenBom "org.springframework.boot:spring-boot-starter-parent:2.1.4.RELEASE"
-    }
-}
-
-release {
-    tagTemplate = '$name-$version'
-    failOnUnversionedFiles = true
-}
-
-afterReleaseBuild.dependsOn publish
-
-ext.artifactoryUser = project.hasProperty("artifactoryUser") ? project.artifactoryUser : System.env.ARTIFACTORY_USER as String
-ext.artifactoryPassword = project.hasProperty("artifactoryPassword") ? project.artifactoryPassword : System.env.ARTIFACTORY_PASSWORD as String
-
-task sourcesJar(type: Jar) {
-    from sourceSets.main.allJava
-    archiveClassifier = 'sources'
-}
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            from components.java
-            artifact sourcesJar
-
-            pom {
-                name = 'TW Graceful Shutdown'
-                description = 'TW Graceful Shutdown - TW Graceful Shutdown - no noise and errors during releases.'
-                licenses {
-                    license {
-                        name = 'The Apache License, Version 2.0, Copyright 2019 TransferWise Ltd'
-                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                    }
-                }
-                developers {
-                    developer {
-                        id = 'onukristo'
-                        name = 'Kristo Kuusküll'
-                    }
-                }
-            }
-        }
-    }
-
-    repositories {
-        maven {
-            url "https://arti.tw.ee/artifactory/libs-${project.version.endsWith('-SNAPSHOT') ? 'snapshot' : 'release'}-local"
-            credentials {
-                username = artifactoryUser
-                password = artifactoryPassword
-            }
-        }
+    reports {
+        xml.enabled false
+        html.enabled true
     }
 }
