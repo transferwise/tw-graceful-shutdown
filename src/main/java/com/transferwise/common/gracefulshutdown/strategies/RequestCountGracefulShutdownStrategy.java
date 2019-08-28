@@ -1,7 +1,9 @@
 package com.transferwise.common.gracefulshutdown.strategies;
 
 import com.transferwise.common.gracefulshutdown.GracefulShutdownStrategy;
+import com.transferwise.common.gracefulshutdown.config.RequestCountStrategyProperties;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
@@ -9,6 +11,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Slf4j
@@ -19,6 +22,9 @@ public class RequestCountGracefulShutdownStrategy extends OncePerRequestFilter i
     private boolean stopAcceptingRequests = false;
 
     private boolean stopCounting;
+
+    @Autowired
+    private RequestCountStrategyProperties requestCountStrategyProperties;
 
     @Override
     public void applicationTerminating() {
@@ -40,7 +46,7 @@ public class RequestCountGracefulShutdownStrategy extends OncePerRequestFilter i
             return;
         }
 
-        boolean shouldCount = !stopCounting;
+        boolean shouldCount = !stopCounting && !requestCountStrategyProperties.getIgnoredUris().contains(requestURI);
         if (shouldCount) {
             requestCount.incrementAndGet();
         } else {
