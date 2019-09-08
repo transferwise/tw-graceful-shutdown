@@ -45,13 +45,13 @@ public class RequestCountGracefulShutdownStrategy extends OncePerRequestFilter i
             return;
         }
 
-        boolean shouldCount = !stopCounting && !requestCountStrategyProperties.getIgnoredUris().contains(requestURI);
+        boolean ignoredUri = requestCountStrategyProperties.getIgnoredUris().contains(requestURI);
+        boolean shouldCount = !stopCounting && !ignoredUri;
         if (shouldCount) {
             requestCount.incrementAndGet();
-        } else {
-            if (!requestURI.contains("health")) {
-                log.warn("Not counting request to '" + requestURI + "' from '" + request.getRemoteAddr() + ". Contact the caller's owners to fix their code.");
-            }
+        }
+        if (stopCounting && !ignoredUri) {
+            log.warn("Not counting request to '" + requestURI + "' from '" + request.getRemoteAddr() + ". Contact the caller's owners to fix their code.");
         }
         try {
             filterChain.doFilter(request, response);
