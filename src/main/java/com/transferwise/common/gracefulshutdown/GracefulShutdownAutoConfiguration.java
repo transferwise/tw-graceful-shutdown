@@ -69,4 +69,15 @@ public class GracefulShutdownAutoConfiguration {
             return new EurekaGracefulShutdownStrategy();
         }
     }
+
+    @Configuration
+    protected static class GRPCShutdownConfiguration {
+        @ConditionalOnBean(type = "io.grpc.Server")
+        @ConditionalOnProperty(value = "tw-graceful-shutdown.grpc-strategy.enabled", matchIfMissing = true)
+        @Bean
+        public GRPCShutdownConfiguration grpcShutdownConfiguration() {
+            return new GRPCShutdownConfiguration();
+        }
+    }
+
 }
