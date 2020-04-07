@@ -35,7 +35,7 @@ public class GRPCGracefulShutdownStrategy implements GracefulShutdownStrategy {
 
 	@Override
 	public void applicationTerminating() {
-		if (!server.isShutdown() && !server.isTerminated()) {
+		if (!server.isTerminated()) {
 			log.warn("Terminating GRPC Server ");
 			server.shutdownNow();
 		}
