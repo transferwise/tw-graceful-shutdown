@@ -131,21 +131,21 @@ publishing {
     }
 
     repositories {
-        /*
         maven {
             url "https://arti.tw.ee/artifactory/libs-${project.version.endsWith('-SNAPSHOT') ? 'snapshot' : 'release'}-local"
             credentials {
                 username = artifactoryUser
                 password = artifactoryPassword
             }
-        }*/
+        }
+        /*
         maven {
             url "https://oss.sonatype.org/service/local/staging/deploy/maven2"
             credentials {
                 username sonatypeUsername
                 password sonatypePassword
             }
-        }
+        }*/
     }
 }
 
