@@ -39,13 +39,20 @@ public class RequestCountGracefulShutdownStrategy extends OncePerRequestFilter i
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String requestURI = request.getRequestURI();
+        boolean ignoredUri = requestCountStrategyProperties.getIgnoredUris().contains(requestURI);
+        
         if (stopAcceptingRequests) {
-            log.info("Denying a request to '" + requestURI + "', because we are going to shut down.");
+            if (ignoredUri){
+                log.debug("Denying a request to '{}', because we are going to shut down.", requestURI);
+            }
+            else {
+                log.info("Denying a request to '{}', because we are going to shut down.", requestURI);
+            }
             response.sendError(SERVICE_UNAVAILABLE);
             return;
         }
 
-        boolean ignoredUri = requestCountStrategyProperties.getIgnoredUris().contains(requestURI);
+        
         boolean shouldCount = !stopCounting && !ignoredUri;
         if (shouldCount) {
             requestCount.incrementAndGet();
