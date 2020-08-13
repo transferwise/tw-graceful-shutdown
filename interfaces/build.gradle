@@ -1,17 +1,6 @@
-import com.github.spotbugs.SpotBugsTask
-
 ext.projectName = 'TransferWise Graceful Shutdown Interfaces'
 ext.projectDescription = 'TransferWise Graceful Shutdown - no noise and errors during releases.'
 ext.projectGitHubRepoName = 'tw-graceful-shutdown'
 ext.projectArtifactName = 'tw-graceful-shutdown-interfaces'
 
 apply from: '../build-common.gradle'
-
-tasks.withType(SpotBugsTask) {
-    effort = "max"
-
-    reports {
-        xml.enabled false
-        html.enabled true
-    }
-}
