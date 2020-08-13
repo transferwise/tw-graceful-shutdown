@@ -1,9 +1,7 @@
-import com.github.spotbugs.SpotBugsTask
-
 plugins {
-    id "net.researchgate.release" version "2.8.0" apply false
-    id 'com.github.spotbugs' version '1.7.1' apply false
-    id 'io.spring.dependency-management' version '1.0.7.RELEASE' apply false
+	id "net.researchgate.release" version "2.8.0" apply false
+	id "com.github.spotbugs" version "4.5.0" apply false
+	id 'io.spring.dependency-management' version '1.0.7.RELEASE' apply false
 }
 
 ext.projectName = 'TransferWise Graceful Shutdown'
@@ -14,37 +12,27 @@ ext.projectArtifactName = 'tw-graceful-shutdown'
 apply from: 'build-common.gradle'
 
 dependencies {
-    implementation 'com.transferwise.common:tw-graceful-shutdown-interfaces:1.3.2'
-    implementation 'com.transferwise.common:tw-base-utils:1.2.3'
+	implementation 'com.transferwise.common:tw-graceful-shutdown-interfaces:1.3.2'
+	implementation 'com.transferwise.common:tw-base-utils:1.2.3'
 
-    compileOnly 'org.springframework.boot:spring-boot-actuator'
-    compileOnly 'org.springframework:spring-web'
-    compileOnly 'org.springframework:spring-context'
-    compileOnly 'org.springframework.cloud:spring-cloud-commons'
-    compileOnly 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
-    compileOnly 'org.quartz-scheduler:quartz:2.3.0'
-    compileOnly 'javax.servlet:javax.servlet-api'
+	compileOnly 'org.springframework.boot:spring-boot-actuator'
+	compileOnly 'org.springframework:spring-web'
+	compileOnly 'org.springframework:spring-context'
+	compileOnly 'org.springframework.cloud:spring-cloud-commons'
+	compileOnly 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+	compileOnly 'org.quartz-scheduler:quartz:2.3.0'
+	compileOnly 'javax.servlet:javax.servlet-api'
 
-    testAnnotationProcessor 'org.projectlombok:lombok'
-    testImplementation 'org.projectlombok:lombok'
-    testImplementation 'org.springframework.boot:spring-boot-actuator'
-    testImplementation 'org.springframework:spring-web'
-    testImplementation 'org.springframework:spring-context'
-    testImplementation 'org.springframework.cloud:spring-cloud-commons'
-    testImplementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
-    testImplementation 'org.quartz-scheduler:quartz:2.3.0'
-    testImplementation 'javax.servlet:javax.servlet-api'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.spockframework:spock-core:1.2-groovy-2.5'
-    testImplementation 'org.spockframework:spock-spring:1.2-groovy-2.5'
-}
-
-
-tasks.withType(SpotBugsTask) {
-    effort = "max"
-
-    reports {
-        xml.enabled false
-        html.enabled true
-    }
+	testAnnotationProcessor 'org.projectlombok:lombok'
+	testImplementation 'org.projectlombok:lombok'
+	testImplementation 'org.springframework.boot:spring-boot-actuator'
+	testImplementation 'org.springframework:spring-web'
+	testImplementation 'org.springframework:spring-context'
+	testImplementation 'org.springframework.cloud:spring-cloud-commons'
+	testImplementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+	testImplementation 'org.quartz-scheduler:quartz:2.3.0'
+	testImplementation 'javax.servlet:javax.servlet-api'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.spockframework:spock-core:1.2-groovy-2.5'
+	testImplementation 'org.spockframework:spock-spring:1.2-groovy-2.5'
 }
