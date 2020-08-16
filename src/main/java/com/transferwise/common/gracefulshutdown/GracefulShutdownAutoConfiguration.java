@@ -6,7 +6,6 @@ import com.transferwise.common.gracefulshutdown.strategies.EurekaGracefulShutdow
 import com.transferwise.common.gracefulshutdown.strategies.GracefulShutdownHealthIndicator;
 import com.transferwise.common.gracefulshutdown.strategies.QuartzGracefulShutdownStrategy;
 import com.transferwise.common.gracefulshutdown.strategies.RequestCountGracefulShutdownStrategy;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -18,7 +17,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ConditionalOnProperty(value = "tw-graceful-shutdown.enable", matchIfMissing = true)
-@EnableConfigurationProperties({GracefulShutdownProperties.class, RequestCountStrategyProperties.class})
+@EnableConfigurationProperties({GracefulShutdownProperties.class})
 @AutoConfigureAfter(name = {"org.springframework.cloud.netflix.eureka.EurekaClientAutoConfiguration"})
 public class GracefulShutdownAutoConfiguration {
 
@@ -33,10 +32,14 @@ public class GracefulShutdownAutoConfiguration {
     }
 
     @Configuration
+    @EnableConfigurationProperties({RequestCountStrategyProperties.class})
     @ConditionalOnClass(name = "javax.servlet.Filter")
     protected static class ServletConfiguration {
-        @Autowired
-        private RequestCountStrategyProperties requestCountStrategyProperties;
+        private final RequestCountStrategyProperties requestCountStrategyProperties;
+
+        public ServletConfiguration(RequestCountStrategyProperties requestCountStrategyProperties) {
+            this.requestCountStrategyProperties = requestCountStrategyProperties;
+        }
 
         @Bean
         @ConditionalOnProperty(value = "tw-graceful-shutdown.request-count-strategy.enabled", matchIfMissing = true)
