@@ -6,6 +6,7 @@ import com.transferwise.common.gracefulshutdown.strategies.EurekaGracefulShutdow
 import com.transferwise.common.gracefulshutdown.strategies.GracefulShutdownHealthIndicator;
 import com.transferwise.common.gracefulshutdown.strategies.QuartzGracefulShutdownStrategy;
 import com.transferwise.common.gracefulshutdown.strategies.RequestCountGracefulShutdownStrategy;
+import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -32,14 +33,11 @@ public class GracefulShutdownAutoConfiguration {
     }
 
     @Configuration
+    @RequiredArgsConstructor
     @EnableConfigurationProperties({RequestCountStrategyProperties.class})
     @ConditionalOnClass(name = "javax.servlet.Filter")
     protected static class ServletConfiguration {
         private final RequestCountStrategyProperties requestCountStrategyProperties;
-
-        public ServletConfiguration(RequestCountStrategyProperties requestCountStrategyProperties) {
-            this.requestCountStrategyProperties = requestCountStrategyProperties;
-        }
 
         @Bean
         @ConditionalOnProperty(value = "tw-graceful-shutdown.request-count-strategy.enabled", matchIfMissing = true)
