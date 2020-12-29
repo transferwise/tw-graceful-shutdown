@@ -16,7 +16,7 @@ jar {
 	manifest {
 		attributes(
 				"Implementation-Title": projectName,
-				"Implementation-Version": version
+				"Implementation-Version": archiveVersion
 		)
 	}
 }
@@ -25,8 +25,8 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 	compileOnly 'org.projectlombok:lombok'
-	compileOnly 'com.github.spotbugs:spotbugs-annotations:3.1.12'
-	testCompileOnly 'com.github.spotbugs:spotbugs-annotations:3.1.12'
+	compileOnly 'com.github.spotbugs:spotbugs-annotations:4.2.0'
+	testCompileOnly 'com.github.spotbugs:spotbugs-annotations:4.2.0'
 }
 
 compileJava {
@@ -44,8 +44,8 @@ repositories {
 
 dependencyManagement {
 	imports {
-		mavenBom "org.springframework.boot:spring-boot-starter-parent:2.1.5.RELEASE"
-		mavenBom "org.springframework.cloud:spring-cloud-dependencies:Greenwich.SR1"
+		mavenBom "org.springframework.boot:spring-boot-starter-parent:2.4.1"
+		mavenBom "org.springframework.cloud:spring-cloud-dependencies:2020.0.0"
 	}
 }
 
