@@ -2,13 +2,10 @@ package com.transferwise.common.gracefulshutdown;
 
 import com.transferwise.common.gracefulshutdown.config.GracefulShutdownProperties;
 import com.transferwise.common.gracefulshutdown.config.RequestCountStrategyProperties;
-import com.transferwise.common.gracefulshutdown.strategies.EurekaGracefulShutdownStrategy;
 import com.transferwise.common.gracefulshutdown.strategies.GracefulShutdownHealthIndicator;
-import com.transferwise.common.gracefulshutdown.strategies.QuartzGracefulShutdownStrategy;
 import com.transferwise.common.gracefulshutdown.strategies.RequestCountGracefulShutdownStrategy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -60,23 +57,4 @@ public class GracefulShutdownAutoConfiguration {
         return new GracefulShutdowner();
     }
 
-    @Configuration
-    protected static class QuartzShutdownConfiguration {
-        @ConditionalOnBean(type = "org.quartz.Scheduler")
-        @ConditionalOnProperty(value = "tw-graceful-shutdown.quartz-strategy.enabled", matchIfMissing = true)
-        @Bean
-        public QuartzGracefulShutdownStrategy quartzGracefulShutdownStrategy() {
-            return new QuartzGracefulShutdownStrategy();
-        }
-    }
-
-    @Configuration
-    protected static class EurekaShutdownConfiguration {
-        @ConditionalOnClass(name = "org.springframework.cloud.netflix.eureka.serviceregistry.EurekaRegistration")
-        @ConditionalOnProperty(value = "tw-graceful-shutdown.eureka-strategy.enabled", matchIfMissing = true)
-        @Bean
-        public EurekaGracefulShutdownStrategy eurekaGracefulShutdownStrategy() {
-            return new EurekaGracefulShutdownStrategy();
-        }
-    }
 }
