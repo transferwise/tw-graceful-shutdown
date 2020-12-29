@@ -1,38 +1,31 @@
-plugins {
-	id "net.researchgate.release" version "2.8.0" apply false
-	id "com.github.spotbugs" version "4.5.0" apply false
-	id 'io.spring.dependency-management' version '1.0.7.RELEASE' apply false
+buildscript {
+	repositories {
+		maven {
+			setUrl("https://arti.tw.ee/artifactory/plugins-release")
+		}
+		mavenLocal()
+	}
 }
 
-ext.projectName = 'TransferWise Graceful Shutdown'
-ext.projectDescription = 'TransferWise Graceful Shutdown - no noise and errors during releases.'
-ext.projectGitHubRepoName = 'tw-graceful-shutdown'
-ext.projectArtifactName = 'tw-graceful-shutdown'
+plugins {
+	id 'com.github.spotbugs' version '4.5.0' apply false
+	id 'io.spring.dependency-management' version '1.0.7.RELEASE' apply false
+	id 'idea'
+}
 
-apply from: 'build-common.gradle'
+idea.project {
+	vcs = 'Git'
+	languageLevel = JavaVersion.VERSION_1_8
+	targetBytecodeVersion = JavaVersion.VERSION_1_8
+}
 
-dependencies {
-	implementation 'com.transferwise.common:tw-graceful-shutdown-interfaces:1.3.2'
-	implementation 'com.transferwise.common:tw-base-utils:1.2.3'
-
-	compileOnly 'org.springframework.boot:spring-boot-actuator'
-	compileOnly 'org.springframework:spring-web'
-	compileOnly 'org.springframework:spring-context'
-	compileOnly 'org.springframework.cloud:spring-cloud-commons'
-	compileOnly 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
-	compileOnly 'org.quartz-scheduler:quartz:2.3.0'
-	compileOnly 'javax.servlet:javax.servlet-api'
-
-	testAnnotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-actuator'
-	testImplementation 'org.springframework:spring-web'
-	testImplementation 'org.springframework:spring-context'
-	testImplementation 'org.springframework.cloud:spring-cloud-commons'
-	testImplementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
-	testImplementation 'org.quartz-scheduler:quartz:2.3.0'
-	testImplementation 'javax.servlet:javax.servlet-api'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'org.spockframework:spock-core:1.2-groovy-2.5'
-	testImplementation 'org.spockframework:spock-spring:1.2-groovy-2.5'
+idea.module {
+	downloadJavadoc = false
+	downloadSources = true
+	excludeDirs += file('logs')
+	excludeDirs += file('gradle')
+	excludeDirs += file('build')
+	excludeDirs += file('target')
+	excludeDirs += file('.idea')
+	excludeDirs += file('.gradle')
 }

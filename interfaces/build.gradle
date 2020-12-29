@@ -3,4 +3,5 @@ ext.projectDescription = 'TransferWise Graceful Shutdown - no noise and errors d
 ext.projectGitHubRepoName = 'tw-graceful-shutdown'
 ext.projectArtifactName = 'tw-graceful-shutdown-interfaces'
 
-apply from: '../build-common.gradle'
+apply from: '../build.common.gradle'
+apply from: '../publishing.gradle'
