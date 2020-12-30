@@ -87,7 +87,7 @@ workflows:
   build_and_deploy:
     jobs:
       - build
-      - publish:
+      - publish-artifacts:
           context: artifactory-deploy
           requires:
             - build
