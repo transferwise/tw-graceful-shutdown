@@ -65,6 +65,17 @@ test {
 	}
 }
 
+tasks.withType(Checkstyle) {
+	config = resources.text.fromFile(file('../google_checks.xml'))
+
+	maxWarnings = 0
+
+	reports {
+		xml.enabled false
+		html.enabled true
+	}
+}
+
 tasks.findAll { it.name.startsWith("spotbugs") }*.configure {
 	effort = "max"
 
