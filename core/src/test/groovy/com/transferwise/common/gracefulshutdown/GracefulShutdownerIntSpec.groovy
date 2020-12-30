@@ -1,7 +1,6 @@
 package com.transferwise.common.gracefulshutdown
 
 
-import com.transferwise.common.gracefulshutdown.strategies.EurekaGracefulShutdownStrategy
 import com.transferwise.common.gracefulshutdown.strategies.GracefulShutdownHealthIndicator
 import com.transferwise.common.gracefulshutdown.strategies.RequestCountGracefulShutdownStrategy
 import com.transferwise.common.gracefulshutdown.test.TestApplication
@@ -28,7 +27,6 @@ class GracefulShutdownerIntSpec extends Specification {
 
             gracefulShutdowner.strategies.find({ it.class == GracefulShutdownHealthIndicator })
             gracefulShutdowner.strategies.find({ it.class == RequestCountGracefulShutdownStrategy })
-            gracefulShutdowner.strategies.find({ it.class == EurekaGracefulShutdownStrategy })
 
             healthIndicator.health().status == Status.UP
     }
