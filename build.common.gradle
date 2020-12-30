@@ -7,8 +7,12 @@ apply plugin: 'io.spring.dependency-management'
 
 group = 'com.transferwise.common'
 
-sourceCompatibility = '1.8'
-targetCompatibility = '1.8'
+java {
+	sourceCompatibility = JavaVersion.VERSION_1_8
+	targetCompatibility = JavaVersion.VERSION_1_8
+	withSourcesJar()
+	withJavadocJar()
+}
 
 jar {
 	baseName projectArtifactName
@@ -54,15 +58,15 @@ configurations {
 	}
 }
 
-task sourcesJar(type: Jar) {
-	from sourceSets.main.allJava
-	archiveClassifier = 'sources'
-}
-
-task javadocJar(type: Jar) {
-	from javadoc
-	archiveClassifier = 'javadoc'
-}
+//task sourcesJar(type: Jar) {
+//	from sourceSets.main.allJava
+//	archiveClassifier = 'sources'
+//}
+//
+//task javadocJar(type: Jar) {
+//	from javadoc
+//	archiveClassifier = 'javadoc'
+//}
 
 test {
 	testLogging {
