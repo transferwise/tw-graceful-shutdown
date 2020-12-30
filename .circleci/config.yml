@@ -72,7 +72,7 @@ jobs:
           name: Publish core
           command: |
             if ./.circleci/version-changed.sh core tw-graceful-shutdown ; then
-              ./gradlew :tw-graceful-shutdown-core:pushTag :tw-graceful-shutdown-core:publish --console=plain
+              ./gradlew :tw-graceful-shutdown-core:pushTag :tw-graceful-shutdown-core:publish --console=plain -Dorg.gradle.internal.publish.checksums.insecure=true
             fi
       - run:
           name: Publish interfaces
