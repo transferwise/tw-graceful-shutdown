@@ -1,0 +1,82 @@
+apply plugin: 'java-library'
+apply plugin: 'groovy'
+apply plugin: 'signing'
+apply plugin: 'checkstyle'
+apply plugin: 'com.github.spotbugs'
+apply plugin: 'io.spring.dependency-management'
+
+group = 'com.transferwise.common'
+
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
+
+jar {
+	baseName projectArtifactName
+	manifest {
+		attributes(
+				"Implementation-Title": projectArtifactName,
+				"Implementation-Version": archiveVersion
+		)
+	}
+}
+
+dependencies {
+	annotationProcessor 'org.projectlombok:lombok'
+	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+	compileOnly 'org.projectlombok:lombok'
+	compileOnly 'com.github.spotbugs:spotbugs-annotations:3.1.12'
+	testCompileOnly 'com.github.spotbugs:spotbugs-annotations:3.1.12'
+}
+
+compileJava {
+	options.encoding = 'utf-8'
+	options.compilerArgs << '-parameters'
+}
+
+repositories {
+	mavenCentral()
+	maven {
+		url 'https://arti.tw.ee/artifactory/libs-release'
+	}
+	mavenLocal()
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.boot:spring-boot-starter-parent:2.1.5.RELEASE"
+		mavenBom "org.springframework.cloud:spring-cloud-dependencies:Greenwich.SR1"
+	}
+}
+
+configurations {
+	all {
+		exclude module: 'slf4j-log4j12'
+	}
+}
+
+task sourcesJar(type: Jar) {
+	from sourceSets.main.allJava
+	archiveClassifier = 'sources'
+}
+
+task javadocJar(type: Jar) {
+	from javadoc
+	archiveClassifier = 'javadoc'
+}
+
+test {
+	testLogging {
+		events "passed", "skipped", "failed", "standardError"
+		showStackTraces = true
+		exceptionFormat = 'full'
+	}
+}
+
+tasks.findAll { it.name.startsWith("spotbugs") }*.configure {
+	effort = "max"
+
+	reports {
+		xml.enabled false
+		html.enabled true
+	}
+}
