@@ -18,9 +18,11 @@ public class DefaultGracefulShutdownStrategiesRegistry implements GracefulShutdo
   @Override
   public List<GracefulShutdownStrategy> getStrategies() {
     if (strategies == null) {
-      strategies = new ArrayList<>(applicationContext.getBeansOfType(GracefulShutdownStrategy.class).values());
+      List<GracefulShutdownStrategy> strategies = new ArrayList<>(applicationContext.getBeansOfType(GracefulShutdownStrategy.class).values());
 
       AnnotationAwareOrderComparator.sort(strategies);
+      
+      this.strategies = strategies;
 
       log.info("Following strategies were detected: '" + strategies + "'.");
     }
