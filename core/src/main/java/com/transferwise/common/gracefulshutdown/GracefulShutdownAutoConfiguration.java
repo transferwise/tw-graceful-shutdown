@@ -7,6 +7,7 @@ import com.transferwise.common.gracefulshutdown.strategies.RequestCountGracefulS
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -22,6 +23,7 @@ public class GracefulShutdownAutoConfiguration {
   @Configuration
   @ConditionalOnClass(name = "org.springframework.boot.actuate.health.AbstractHealthIndicator")
   protected static class HealthIndicatorConfiguration {
+
     @Bean
     @ConditionalOnProperty(value = "tw-graceful-shutdown.health-indicator.enabled", matchIfMissing = true)
     public GracefulShutdownHealthIndicator gracefulShutdownHealthIndicator() {
@@ -34,6 +36,7 @@ public class GracefulShutdownAutoConfiguration {
   @EnableConfigurationProperties({RequestCountStrategyProperties.class})
   @ConditionalOnClass(name = "javax.servlet.Filter")
   protected static class ServletConfiguration {
+
     private final RequestCountStrategyProperties requestCountStrategyProperties;
 
     @Bean
@@ -53,8 +56,15 @@ public class GracefulShutdownAutoConfiguration {
   }
 
   @Bean
+  @ConditionalOnMissingBean
   public GracefulShutdowner gracefulShutdowner() {
     return new GracefulShutdowner();
+  }
+
+  @Bean
+  @ConditionalOnMissingBean
+  public GracefulShutdownStrategiesRegistry gracefulShutdownStrategiesRegistry() {
+    return new DefaultGracefulShutdownStrategiesRegistry();
   }
 
 }
