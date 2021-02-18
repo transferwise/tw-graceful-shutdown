@@ -1,86 +1,89 @@
 apply plugin: 'java-library'
-apply plugin: 'groovy'
 apply plugin: 'signing'
 apply plugin: 'checkstyle'
 apply plugin: 'com.github.spotbugs'
-apply plugin: 'io.spring.dependency-management'
 
 group = 'com.transferwise.common'
 
+apply from: "${project.rootDir}/build.libraries.gradle"
+
 java {
-	sourceCompatibility = JavaVersion.VERSION_1_8
-	targetCompatibility = JavaVersion.VERSION_1_8
-	withSourcesJar()
-	withJavadocJar()
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+    withSourcesJar()
+    withJavadocJar()
 }
 
 jar {
-	baseName projectArtifactName
-	manifest {
-		attributes(
-				"Implementation-Title": projectArtifactName,
-				"Implementation-Version": archiveVersion
-		)
-	}
+    baseName projectArtifactName
+    manifest {
+        attributes(
+                "Implementation-Title": projectArtifactName,
+                "Implementation-Version": archiveVersion
+        )
+    }
 }
 
 dependencies {
-	annotationProcessor 'org.projectlombok:lombok'
-	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
-	compileOnly 'org.projectlombok:lombok'
-	compileOnly 'com.github.spotbugs:spotbugs-annotations:4.2.0'
-	testCompileOnly 'com.github.spotbugs:spotbugs-annotations:4.2.0'
+    annotationProcessor platform(libraries.springBootDependencies)
+    implementation platform(libraries.springBootDependencies)
+    compileOnly platform(libraries.springBootDependencies)
+    testAnnotationProcessor platform(libraries.springBootDependencies)
+
+    annotationProcessor libraries.lombok
+    annotationProcessor libraries.springBootConfigurationProcessor
+    testAnnotationProcessor libraries.lombok
+
+    implementation libraries.lombok
+
+    compileOnly libraries.spotbugsAnnotations
 }
 
 compileJava {
-	options.encoding = 'utf-8'
-	options.compilerArgs << '-parameters'
+    options.encoding = 'utf-8'
+    options.compilerArgs << '-parameters'
 }
 
 repositories {
-	mavenCentral()
-	maven {
-		url 'https://arti.tw.ee/artifactory/libs-release'
-	}
-	mavenLocal()
-}
-
-dependencyManagement {
-	imports {
-		mavenBom "org.springframework.boot:spring-boot-starter-parent:2.3.7.RELEASE"
-	}
+    mavenCentral()
+    maven {
+        url 'https://arti.tw.ee/artifactory/libs-release'
+    }
+    mavenLocal()
 }
 
 configurations {
-	all {
-		exclude module: 'slf4j-log4j12'
-	}
+    all {
+        exclude module: 'slf4j-log4j12'
+    }
 }
 
 test {
-	testLogging {
-		events "passed", "skipped", "failed", "standardError"
-		showStackTraces = true
-		exceptionFormat = 'full'
-	}
+    useJUnitPlatform()
+    
+    testLogging {
+        events "passed", "skipped", "failed", "standardError"
+        showStackTraces = true
+        exceptionFormat = 'full'
+    }
 }
 
 tasks.withType(Checkstyle) {
-	config = resources.text.fromFile(file('../google_checks.xml'))
+    config = resources.text.fromFile(file('../google_checks.xml'))
 
-	maxWarnings = 0
+    maxWarnings = 0
 
-	reports {
-		xml.enabled false
-		html.enabled true
-	}
+    reports {
+        xml.enabled false
+        html.enabled true
+    }
 }
 
 tasks.findAll { it.name.startsWith("spotbugs") }*.configure {
-	effort = "max"
+    effort = "max"
 
-	reports {
-		xml.enabled false
-		html.enabled true
-	}
+    reports {
+        xml.enabled false
+        html.enabled true
+    }
 }

@@ -30,6 +30,7 @@ public class GracefulShutdownHealthIndicator extends AbstractHealthIndicator imp
   public void applicationStarted() {
     log.info("Considering Service as fully started. Starting to broadcast UP state.");
     startupInProgress = false;
+    shutdownInProgress = false;
   }
 
   @Override

@@ -1,0 +1,19 @@
+ext {
+	libraries = [
+			// version defined
+			spotbugsAnnotations             : 'com.github.spotbugs:spotbugs-annotations:4.2.0',
+			springBootDependencies          : 'org.springframework.boot:spring-boot-dependencies:2.3.8.RELEASE',
+			twBaseUtils                     : 'com.transferwise.common:tw-base-utils:1.3.2',
+
+			// versions managed by spring-boot-dependencies platform
+			springWeb                       : 'org.springframework:spring-web',
+			springContext                   : 'org.springframework:spring-context',
+			javaxServletApi                 : 'javax.servlet:javax.servlet-api',
+			slf4jApi                        : 'org.slf4j:slf4j-api',
+			lombok                          : 'org.projectlombok:lombok',
+			springBootActuator              : 'org.springframework.boot:spring-boot-actuator',
+			springBootConfigurationProcessor: 'org.springframework.boot:spring-boot-configuration-processor',
+			springBootStarter               : 'org.springframework.boot:spring-boot-starter',
+			springBootStarterTest           : 'org.springframework.boot:spring-boot-starter-test',
+	]
+}

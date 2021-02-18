@@ -8,22 +8,18 @@ apply from: '../publishing.gradle'
 
 dependencies {
     api project(':tw-graceful-shutdown-interfaces')
-    implementation 'com.transferwise.common:tw-base-utils:1.2.3'
+    implementation libraries.twBaseUtils
 
-    compileOnly 'org.springframework.boot:spring-boot-actuator'
-    compileOnly 'org.springframework.boot:spring-boot-autoconfigure'
-    compileOnly 'org.springframework:spring-web'
-    compileOnly 'org.springframework:spring-context'
-    compileOnly 'javax.servlet:javax.servlet-api'
-    compileOnly 'org.slf4j:slf4j-api'
+    implementation libraries.springBootStarter
+    implementation libraries.springBootActuator
+    implementation libraries.springWeb
 
-    testAnnotationProcessor 'org.projectlombok:lombok'
-    testImplementation 'org.projectlombok:lombok'
-    testImplementation 'org.springframework.boot:spring-boot-actuator'
-    testImplementation 'org.springframework:spring-web'
-    testImplementation 'org.springframework:spring-context'
-    testImplementation 'javax.servlet:javax.servlet-api'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.spockframework:spock-core:1.2-groovy-2.5'
-    testImplementation 'org.spockframework:spock-spring:1.2-groovy-2.5'
+    compileOnly libraries.springContext
+    compileOnly libraries.javaxServletApi
+    compileOnly libraries.slf4jApi
+
+    testImplementation libraries.javaxServletApi
+    testImplementation libraries.springBootStarterTest
+    
+    testCompileOnly libraries.spotbugsAnnotations
 }

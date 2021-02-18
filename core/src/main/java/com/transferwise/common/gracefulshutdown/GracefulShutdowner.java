@@ -3,13 +3,13 @@ package com.transferwise.common.gracefulshutdown;
 import com.transferwise.common.baseutils.ExceptionUtils;
 import com.transferwise.common.gracefulshutdown.config.GracefulShutdownProperties;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.ExitCodeGenerator;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationContext;
@@ -23,18 +23,21 @@ import org.springframework.core.annotation.Order;
 
 @Slf4j
 public class GracefulShutdowner implements ApplicationListener<ApplicationReadyEvent>, SmartLifecycle {
+
   @Autowired
   private GracefulShutdownProperties properties;
 
   @Autowired
   private ApplicationContext applicationContext;
 
+  @Autowired
+  private GracefulShutdownStrategiesRegistry gracefulShutdownStrategiesRegistry;
+
   @Autowired(required = false)
   private DefaultLifecycleProcessor defaultLifecycleProcessor;
 
   private boolean started;
   private AtomicBoolean isShuttingDown = new AtomicBoolean(false);
-  protected List<GracefulShutdownStrategy> strategies;
 
   @PostConstruct
   public void init() {
@@ -43,14 +46,6 @@ public class GracefulShutdowner implements ApplicationListener<ApplicationReadyE
     if (defaultLifecycleProcessor != null) {
       defaultLifecycleProcessor.setTimeoutPerShutdownPhase(2 * (properties.getClientsReactionTimeMs() + properties.getShutdownTimeoutMs()));
     }
-  }
-
-  protected List<GracefulShutdownStrategy> getStrategies() {
-    if (strategies == null) {
-      strategies = new ArrayList<>(applicationContext.getBeansOfType(GracefulShutdownStrategy.class).values());
-      log.info("Following strategies were detected: '" + strategies + "'.");
-    }
-    return strategies;
   }
 
   @Override
@@ -77,7 +72,10 @@ public class GracefulShutdowner implements ApplicationListener<ApplicationReadyE
     ExceptionUtils.doUnchecked(() -> {
       log.info("Graceful shutdown initiated.");
 
-      getStrategies().forEach((s) -> {
+      List<GracefulShutdownStrategy> strategies = new ArrayList<>(gracefulShutdownStrategiesRegistry.getStrategies());
+      Collections.reverse(strategies);
+
+      strategies.forEach((s) -> {
         try {
           s.prepareForShutdown();
         } catch (Throwable t) {
@@ -108,7 +106,7 @@ public class GracefulShutdowner implements ApplicationListener<ApplicationReadyE
         Thread.sleep(properties.getStrategiesCheckIntervalTimeMs());
       }
 
-      getStrategies().forEach((s) -> {
+      strategies.forEach((s) -> {
         try {
           s.applicationTerminating();
         } catch (Throwable t) {
@@ -149,10 +147,10 @@ public class GracefulShutdowner implements ApplicationListener<ApplicationReadyE
     if (event.getApplicationContext() == applicationContext) {
       started = true;
       try {
-        getStrategies().forEach(GracefulShutdownStrategy::applicationStarted);
+        gracefulShutdownStrategiesRegistry.getStrategies().forEach(GracefulShutdownStrategy::applicationStarted);
       } catch (Throwable t) {
         log.error(t.getMessage(), t);
-        SpringApplication.exit(applicationContext, (ExitCodeGenerator) () -> 1);
+        SpringApplication.exit(applicationContext, () -> 1);
       }
     }
   }
