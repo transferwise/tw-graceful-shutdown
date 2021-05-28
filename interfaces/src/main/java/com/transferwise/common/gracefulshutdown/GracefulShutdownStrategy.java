@@ -10,6 +10,13 @@ public interface GracefulShutdownStrategy {
   }
 
   /**
+   * Return true, when application is ready to serve traffic.
+   */
+  default boolean isReady() {
+    return true;
+  }
+
+  /**
    * Called when a signal for requesting a shutdown has received.
    */
   default void prepareForShutdown() {

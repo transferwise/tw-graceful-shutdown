@@ -21,7 +21,7 @@ publishing {
                 packaging = "jar"
                 licenses {
                     license {
-                        name = 'The Apache License, Version 2.0, Copyright 2019 TransferWise Ltd'
+                        name = 'The Apache License, Version 2.0, Copyright 2021 TransferWise Ltd'
                         url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
                     }
                 }

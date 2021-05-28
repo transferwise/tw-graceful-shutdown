@@ -2,7 +2,7 @@ package com.transferwise.common.gracefulshutdown;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.transferwise.common.gracefulshutdown.strategies.GracefulShutdownHealthIndicator;
+import com.transferwise.common.gracefulshutdown.strategies.GracefulShutdownHealthStrategy;
 import com.transferwise.common.gracefulshutdown.strategies.RequestCountGracefulShutdownStrategy;
 import com.transferwise.common.gracefulshutdown.test.TestApplication;
 import org.junit.jupiter.api.Test;
@@ -21,6 +21,8 @@ class GracefulShutdownerIntTest {
   @Autowired
   private GracefulShutdownHealthIndicator healthIndicator;
   @Autowired
+  private GracefulShutdownHealthStrategy healthStrategy;
+  @Autowired
   private RequestCountGracefulShutdownStrategy requestCountGracefulShutdownStrategy;
   @Autowired
   private GracefulShutdownStrategiesRegistry gracefulShutdownStrategiesRegistry;
@@ -29,7 +31,7 @@ class GracefulShutdownerIntTest {
   void testThatItGenerallyWorks() {
     assertThat(gracefulShutdowner.isRunning()).isTrue();
 
-    assertThat(gracefulShutdownStrategiesRegistry.getStrategies()).contains(healthIndicator);
+    assertThat(gracefulShutdownStrategiesRegistry.getStrategies()).contains(healthStrategy);
     assertThat(gracefulShutdownStrategiesRegistry.getStrategies()).contains(requestCountGracefulShutdownStrategy);
 
     assertThat(healthIndicator.health().getStatus()).isEqualTo(Status.UP);

@@ -22,7 +22,7 @@ jobs:
   build:
     <<: *working_directory
     docker:
-      - image: arti.tw.ee/circle_openjdk8
+      - image: arti.tw.ee/circle_openjdk11
         user: circleci
         environment:
           TERM: vt100
