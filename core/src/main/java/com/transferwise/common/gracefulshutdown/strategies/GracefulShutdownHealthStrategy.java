@@ -3,28 +3,15 @@ package com.transferwise.common.gracefulshutdown.strategies;
 import com.transferwise.common.gracefulshutdown.GracefulShutdownStrategy;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.actuate.health.AbstractHealthIndicator;
-import org.springframework.boot.actuate.health.Health;
 
 @Slf4j
-public class GracefulShutdownHealthIndicator extends AbstractHealthIndicator implements GracefulShutdownStrategy {
+public class GracefulShutdownHealthStrategy implements GracefulShutdownStrategy {
 
   @Getter
-  private boolean shutdownInProgress;
+  private volatile boolean shutdownInProgress;
 
   @Getter
-  private boolean startupInProgress = true;
-
-  @Override
-  protected void doHealthCheck(Health.Builder builder) {
-    if (startupInProgress) {
-      builder.down();
-    } else if (shutdownInProgress) {
-      builder.down();
-    } else {
-      builder.up();
-    }
-  }
+  private volatile boolean startupInProgress = true;
 
   @Override
   public void applicationStarted() {
@@ -42,5 +29,10 @@ public class GracefulShutdownHealthIndicator extends AbstractHealthIndicator imp
   @Override
   public boolean canShutdown() {
     return true;
+  }
+
+  @Override
+  public boolean isReady() {
+    return !startupInProgress;
   }
 }

@@ -8,11 +8,12 @@ apply from: '../publishing.gradle'
 
 dependencies {
     api project(':tw-graceful-shutdown-interfaces')
-    implementation libraries.twBaseUtils
 
+    implementation libraries.twBaseUtils
     implementation libraries.springBootStarter
     implementation libraries.springBootActuator
     implementation libraries.springWeb
+    implementation libraries.guava
 
     compileOnly libraries.springContext
     compileOnly libraries.javaxServletApi
@@ -20,6 +21,6 @@ dependencies {
 
     testImplementation libraries.javaxServletApi
     testImplementation libraries.springBootStarterTest
-    
+
     testCompileOnly libraries.spotbugsAnnotations
 }

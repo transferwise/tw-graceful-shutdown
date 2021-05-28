@@ -2,7 +2,7 @@ package com.transferwise.common.gracefulshutdown;
 
 import com.transferwise.common.gracefulshutdown.config.GracefulShutdownProperties;
 import com.transferwise.common.gracefulshutdown.config.RequestCountStrategyProperties;
-import com.transferwise.common.gracefulshutdown.strategies.GracefulShutdownHealthIndicator;
+import com.transferwise.common.gracefulshutdown.strategies.GracefulShutdownHealthStrategy;
 import com.transferwise.common.gracefulshutdown.strategies.RequestCountGracefulShutdownStrategy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -23,6 +23,12 @@ public class GracefulShutdownAutoConfiguration {
   @Configuration
   @ConditionalOnClass(name = "org.springframework.boot.actuate.health.AbstractHealthIndicator")
   protected static class HealthIndicatorConfiguration {
+
+    @Bean
+    @ConditionalOnProperty(value = "tw-graceful-shutdown.health-indicator.enabled", matchIfMissing = true)
+    public GracefulShutdownHealthStrategy gracefulShutdownHealthStrategy() {
+      return new GracefulShutdownHealthStrategy();
+    }
 
     @Bean
     @ConditionalOnProperty(value = "tw-graceful-shutdown.health-indicator.enabled", matchIfMissing = true)
