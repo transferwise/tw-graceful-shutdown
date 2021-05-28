@@ -1,7 +1,7 @@
 # TW Graceful Shutdown
 
 ![Apache 2](https://img.shields.io/hexpm/l/plug.svg)
-![Java 11](https://img.shields.io/badge/Java-1.8-blue.svg)
+![Java 11](https://img.shields.io/badge/Java-11-blue.svg)
 ![Maven Central](https://badgen.net/maven/v/maven-central/com.transferwise.common/tw-graceful-shutdown-core)
 
 This will keep your service running and kicking, until all the clients have understood that the node is going to shut down. 

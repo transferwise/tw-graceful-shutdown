@@ -8,3 +8,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 * Moved from JDK 8 to JDK 11.
 * Starting to push to Maven Central again.
+* Graceful shutdown strategies can override `ready` method to signal if they are ready to accept traffic.
