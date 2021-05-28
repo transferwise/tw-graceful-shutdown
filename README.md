@@ -18,16 +18,16 @@ The benefits are - less errors for clients, but also cleaner monitoring.
 
 1. GracefulShutdowner receives a stop notification.
 2. It calls `prepareForShutdown` for each `GracefulShutdownStrategy`
-3. Waits for [30 secs](src/main/java/com/transferwise/common/gracefulshutdown/config/GracefulShutdownProperties.java) so that all clients understand that they should not call this application node anymore.
+3. Waits for [30 secs](core/src/main/java/com/transferwise/common/gracefulshutdown/config/GracefulShutdownProperties.java) so that all clients understand that they should not call this application node anymore.
 4. Waits until all strategies return true in the `canShutdown` method.
 
-[Here](src/main/java/com/transferwise/common/gracefulshutdown/strategies) is the list of default `GracefulShutdownStrategy` implementations. 
+[Here](core/src/main/java/com/transferwise/common/gracefulshutdown/strategies) is the list of default `GracefulShutdownStrategy` implementations. 
 
 You can add your own by just creating a bean that implements `GracefulShutdownStrategy`.
 
 ## Configurations
 
-You can find the list of properties [here](src/main/java/com/transferwise/common/gracefulshutdown/config/GracefulShutdownProperties.java).
+You can find the list of properties [here](core/src/main/java/com/transferwise/common/gracefulshutdown/config/GracefulShutdownProperties.java).
 
 ## License
 Copyright 2019 TransferWise Ltd.
