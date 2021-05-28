@@ -54,7 +54,7 @@ jobs:
   publish-artifacts:
     <<: *working_directory
     docker:
-      - image: circleci/openjdk11
+      - image: arti.tw.ee/circle_openjdk11
         user: circleci
         environment:
           TERM: vt100
