@@ -54,7 +54,7 @@ jobs:
   publish-artifacts:
     <<: *working_directory
     docker:
-      - image: circleci/openjdk:8
+      - image: circleci/openjdk11
         user: circleci
         environment:
           TERM: vt100
@@ -69,18 +69,17 @@ jobs:
             ssh-keyscan github.com >> ~/.ssh/known_hosts
             git config --global user.name "TransferWise CircleCI" && git config --global user.email circle@circle.tw.ee
       - run:
-          name: Publish core
-          command: |
-            if ./.circleci/version-changed.sh core tw-graceful-shutdown ; then
-              ./gradlew :tw-graceful-shutdown-core:pushTag :tw-graceful-shutdown-core:publish --console=plain -Dorg.gradle.internal.publish.checksums.insecure=true
-            fi
-      - run:
           name: Publish interfaces
           command: |
-            if ./.circleci/version-changed.sh interfaces tw-graceful-shutdown-interfaces ; then
+            if ./.circleci/version-changed.sh tw-graceful-shutdown-interfaces ; then
               ./gradlew :tw-graceful-shutdown-interfaces:pushTag :tw-graceful-shutdown-interfaces:publish --console=plain
             fi
-
+      - run:
+          name: Publish core
+          command: |
+            if ./.circleci/version-changed.sh tw-graceful-shutdown-core ; then
+              ./gradlew :tw-graceful-shutdown-core:pushTag :tw-graceful-shutdown-core:publish --console=plain -Dorg.gradle.internal.publish.checksums.insecure=true
+            fi
 
 workflows:
   version: 2
