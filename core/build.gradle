@@ -4,7 +4,7 @@ ext.projectGitHubRepoName = 'tw-graceful-shutdown'
 ext.projectArtifactName = 'tw-graceful-shutdown'
 
 apply from: '../build.common.gradle'
-apply from: '../publishing.gradle'
+apply from: '../build.publishing.gradle'
 
 dependencies {
     api project(':tw-graceful-shutdown-interfaces')
