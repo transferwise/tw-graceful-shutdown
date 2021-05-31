@@ -2,7 +2,7 @@
 
 ![Apache 2](https://img.shields.io/hexpm/l/plug.svg)
 ![Java 11](https://img.shields.io/badge/Java-11-blue.svg)
-![Maven Central](https://badgen.net/maven/v/maven-central/com.transferwise.common/tw-graceful-shutdown-core)
+![Maven Central](https://badgen.net/maven/v/maven-central/com.transferwise.common/tw-graceful-shutdown)
 
 This will keep your service running and kicking, until all the clients have understood that the node is going to shut down. 
 It will make sure that all on-flight requests will get served, all the jobs will gracefully shut down, all kafka listeners will stop and so on and on.
