@@ -61,62 +61,59 @@ public class GracefulShutdowner implements ApplicationListener<ApplicationReadyE
 
   @Override
   public void stop() {
-    if (isShuttingDown.get()) {
-      // Avoid calling stop() twice if both SmartLifecycle and EventListener gets triggered
-      log.info("Already shutting down...");
-      return;
-    }
+    if (isShuttingDown.compareAndSet(false, true)) { // Avoid executing stop() twice if both SmartLifecycle and EventListener gets triggered
 
-    isShuttingDown.set(true);
+      ExceptionUtils.doUnchecked(() -> {
+        log.info("Graceful shutdown initiated.");
 
-    ExceptionUtils.doUnchecked(() -> {
-      log.info("Graceful shutdown initiated.");
+        List<GracefulShutdownStrategy> strategies = new ArrayList<>(gracefulShutdownStrategiesRegistry.getStrategies());
+        Collections.reverse(strategies);
 
-      List<GracefulShutdownStrategy> strategies = new ArrayList<>(gracefulShutdownStrategiesRegistry.getStrategies());
-      Collections.reverse(strategies);
-
-      strategies.forEach((s) -> {
-        try {
-          s.prepareForShutdown();
-        } catch (Throwable t) {
-          log.error(t.getMessage(), t);
-        }
-      });
-
-      log.info("Waiting for " + properties.getClientsReactionTimeMs() + " ms for clients to understand this node should not be called anymore.");
-      Thread.sleep(properties.getClientsReactionTimeMs());
-
-      long start = System.currentTimeMillis();
-      List<GracefulShutdownStrategy> redLightStrategies = new ArrayList<>(strategies);
-      while (System.currentTimeMillis() - start < properties.getShutdownTimeoutMs()) {
-        redLightStrategies = redLightStrategies.stream().filter((s) -> {
+        strategies.forEach((s) -> {
           try {
-            return !s.canShutdown();
+            s.prepareForShutdown();
           } catch (Throwable t) {
             log.error(t.getMessage(), t);
-            return true;
           }
-        }).collect(Collectors.toList());
-        if (redLightStrategies.isEmpty()) {
-          log.info("All strategies gave a green light for shutdown.");
-          break;
-        }
-        log.info("Not shutting down yet, {} strategies have red light. Waiting for {} ms for next check.",
-            redLightStrategies, properties.getStrategiesCheckIntervalTimeMs());
-        Thread.sleep(properties.getStrategiesCheckIntervalTimeMs());
-      }
+        });
 
-      strategies.forEach((s) -> {
-        try {
-          s.applicationTerminating();
-        } catch (Throwable t) {
-          log.error(t.getMessage(), t);
+        log.info("Waiting for " + properties.getClientsReactionTimeMs() + " ms for clients to understand this node should not be called anymore.");
+        Thread.sleep(properties.getClientsReactionTimeMs());
+
+        long start = System.currentTimeMillis();
+        List<GracefulShutdownStrategy> redLightStrategies = new ArrayList<>(strategies);
+        while (System.currentTimeMillis() - start < properties.getShutdownTimeoutMs()) {
+          redLightStrategies = redLightStrategies.stream().filter((s) -> {
+            try {
+              return !s.canShutdown();
+            } catch (Throwable t) {
+              log.error(t.getMessage(), t);
+              return true;
+            }
+          }).collect(Collectors.toList());
+          if (redLightStrategies.isEmpty()) {
+            log.info("All strategies gave a green light for shutdown.");
+            break;
+          }
+          log.info("Not shutting down yet, {} strategies have red light. Waiting for {} ms for next check.",
+                  redLightStrategies, properties.getStrategiesCheckIntervalTimeMs());
+          Thread.sleep(properties.getStrategiesCheckIntervalTimeMs());
         }
+
+        strategies.forEach((s) -> {
+          try {
+            s.applicationTerminating();
+          } catch (Throwable t) {
+            log.error(t.getMessage(), t);
+          }
+        });
+
+        log.info("Shutting down.");
+        started = false;
       });
-
-      log.info("Shutting down.");
-      started = false;
-    });
+    } else {
+      log.info("Already shutting down...");
+    }
   }
 
   @Override
