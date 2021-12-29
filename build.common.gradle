@@ -15,10 +15,9 @@ java {
 }
 
 jar {
-    baseName projectArtifactName
     manifest {
         attributes(
-                "Implementation-Title": projectArtifactName,
+                "Implementation-Title": "Wise graceful shutdown",
                 "Implementation-Version": archiveVersion
         )
     }
@@ -60,7 +59,7 @@ configurations {
 
 test {
     useJUnitPlatform()
-    
+
     testLogging {
         events "passed", "skipped", "failed", "standardError"
         showStackTraces = true
@@ -70,20 +69,20 @@ test {
 
 tasks.withType(Checkstyle) {
     config = resources.text.fromFile(file('../google_checks.xml'))
-
     maxWarnings = 0
 
     reports {
-        xml.enabled false
-        html.enabled true
+        xml.required = true
+        html.required = true
     }
 }
 
 tasks.findAll { it.name.startsWith("spotbugs") }*.configure {
     effort = "max"
+    excludeFilter = file('../spotbugs-exclude.xml')
 
     reports {
-        xml.enabled false
-        html.enabled true
+        xml.required = true
+        html.required = true
     }
 }

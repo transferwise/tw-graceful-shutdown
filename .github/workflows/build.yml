@@ -1,0 +1,56 @@
+name: "Build and Test"
+
+on:
+  pull_request:
+    branches:
+      - master
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    name: "Build and Test"
+    runs-on:
+      - ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: "Retrieve gradle settings"
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.gradle
+          key: gradle-v1-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties', '**/*.gradle*') }}
+      - name: "Assemble jar"
+        run: GRADLE_USER_HOME=$HOME/.gradle ./gradlew assemble --console=plain --no-daemon
+      - name: "Run tests"
+        run: GRADLE_USER_HOME=$HOME/.gradle ./gradlew -Dspring.profiles.include=continuous-integration check --console=plain --no-daemon --stacktrace
+      - name: "Test if publishing works"
+        run: GRADLE_USER_HOME=$HOME/.gradle ./gradlew publishToMavenLocal --console=plain --no-daemon --stacktrace
+      - name: "Publish Test Report"
+        uses: mikepenz/action-junit-report@v2
+        if: always()
+        with:
+          report_paths: '**/build/test-results/**/*.xml'
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          require_tests: true
+      - name: Publish checkstyle report
+        if: failure()
+        uses: jwgmeligmeyling/checkstyle-github-action@master
+        with:
+          path: '**/build/reports/**/*.xml'
+      - name: Publish spotbugs report
+        if: failure()
+        uses: jwgmeligmeyling/spotbugs-github-action@master
+        with:
+          path: '**/build/reports/**/*.xml'
+      - name: "Bootstrap git config"
+        if: github.ref == 'refs/heads/master'
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          git config --global user.name "TW GitHub Actions" && git config --global user.email circle@circle.tw.ee
+      - name: "Tag release"
+        if: github.ref == 'refs/heads/master'
+        run: GRADLE_USER_HOME=$HOME/.gradle ./gradlew tagRelease --console=plain --no-daemon
