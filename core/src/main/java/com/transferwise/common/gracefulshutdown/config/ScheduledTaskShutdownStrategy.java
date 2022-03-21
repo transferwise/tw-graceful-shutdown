@@ -8,16 +8,16 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class ScheduledTaskShutdownStrategy implements GracefulShutdownStrategy {
-    private final Scheduler scheduler;
+  private final Scheduler scheduler;
 
-    @Override
-    public void prepareForShutdown() {
-        log.info("Attempting to shutdown scheduler");
-        scheduler.stop();
-    }
+  @Override
+  public void prepareForShutdown() {
+    log.info("Attempting to shutdown scheduler");
+    scheduler.stop();
+  }
 
-    @Override
-    public boolean canShutdown() {
-        return scheduler.getCurrentlyExecuting().isEmpty();
-    }
+  @Override
+  public boolean canShutdown() {
+    return scheduler.getCurrentlyExecuting().isEmpty();
+  }
 }
