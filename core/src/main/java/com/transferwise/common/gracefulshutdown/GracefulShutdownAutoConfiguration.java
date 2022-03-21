@@ -22,63 +22,63 @@ import org.springframework.context.annotation.Configuration;
 @AutoConfigureAfter(name = {"org.springframework.cloud.netflix.eureka.EurekaClientAutoConfiguration"})
 public class GracefulShutdownAutoConfiguration {
 
-  @Configuration
-  @ConditionalOnClass(name = "org.springframework.boot.actuate.health.AbstractHealthIndicator")
-  protected static class HealthIndicatorConfiguration {
+    @Configuration
+    @ConditionalOnClass(name = "org.springframework.boot.actuate.health.AbstractHealthIndicator")
+    protected static class HealthIndicatorConfiguration {
 
-    @Bean
-    @ConditionalOnProperty(value = "tw-graceful-shutdown.health-indicator.enabled", matchIfMissing = true)
-    public GracefulShutdownHealthStrategy gracefulShutdownHealthStrategy() {
-      return new GracefulShutdownHealthStrategy();
+        @Bean
+        @ConditionalOnProperty(value = "tw-graceful-shutdown.health-indicator.enabled", matchIfMissing = true)
+        public GracefulShutdownHealthStrategy gracefulShutdownHealthStrategy() {
+            return new GracefulShutdownHealthStrategy();
+        }
+
+        @Bean
+        @ConditionalOnProperty(value = "tw-graceful-shutdown.health-indicator.enabled", matchIfMissing = true)
+        public GracefulShutdownHealthIndicator gracefulShutdownHealthIndicator() {
+            return new GracefulShutdownHealthIndicator();
+        }
+    }
+
+    @Configuration
+    @RequiredArgsConstructor
+    @EnableConfigurationProperties({RequestCountStrategyProperties.class})
+    @ConditionalOnClass(name = "javax.servlet.Filter")
+    protected static class ServletConfiguration {
+
+        private final RequestCountStrategyProperties requestCountStrategyProperties;
+
+        @Bean
+        @ConditionalOnProperty(value = "tw-graceful-shutdown.request-count-strategy.enabled", matchIfMissing = true)
+        public FilterRegistrationBean<RequestCountGracefulShutdownStrategy> requestCountGracefulShutdownStrategyFilter() {
+            FilterRegistrationBean<RequestCountGracefulShutdownStrategy> registrationBean = new FilterRegistrationBean<>();
+            registrationBean.setFilter(requestCountGracefulShutdownStrategy());
+            registrationBean.setOrder(requestCountStrategyProperties.getFilterOrder());
+            return registrationBean;
+        }
+
+        @Bean
+        @ConditionalOnProperty(value = "tw-graceful-shutdown.request-count-strategy.enabled", matchIfMissing = true)
+        public RequestCountGracefulShutdownStrategy requestCountGracefulShutdownStrategy() {
+            return new RequestCountGracefulShutdownStrategy();
+        }
     }
 
     @Bean
-    @ConditionalOnProperty(value = "tw-graceful-shutdown.health-indicator.enabled", matchIfMissing = true)
-    public GracefulShutdownHealthIndicator gracefulShutdownHealthIndicator() {
-      return new GracefulShutdownHealthIndicator();
-    }
-  }
-
-  @Configuration
-  @RequiredArgsConstructor
-  @EnableConfigurationProperties({RequestCountStrategyProperties.class})
-  @ConditionalOnClass(name = "javax.servlet.Filter")
-  protected static class ServletConfiguration {
-
-    private final RequestCountStrategyProperties requestCountStrategyProperties;
-
-    @Bean
-    @ConditionalOnProperty(value = "tw-graceful-shutdown.request-count-strategy.enabled", matchIfMissing = true)
-    public FilterRegistrationBean<RequestCountGracefulShutdownStrategy> requestCountGracefulShutdownStrategyFilter() {
-      FilterRegistrationBean<RequestCountGracefulShutdownStrategy> registrationBean = new FilterRegistrationBean<>();
-      registrationBean.setFilter(requestCountGracefulShutdownStrategy());
-      registrationBean.setOrder(requestCountStrategyProperties.getFilterOrder());
-      return registrationBean;
+    @ConditionalOnProperty(value = "tw-graceful-shutdown.db-scheduler.enabled")
+    public ScheduledTaskShutdownStrategy scheduledTaskShutdownStrategy(final Scheduler scheduler) {
+        return new ScheduledTaskShutdownStrategy(scheduler);
     }
 
     @Bean
-    @ConditionalOnProperty(value = "tw-graceful-shutdown.request-count-strategy.enabled", matchIfMissing = true)
-    public RequestCountGracefulShutdownStrategy requestCountGracefulShutdownStrategy() {
-      return new RequestCountGracefulShutdownStrategy();
+    @ConditionalOnMissingBean
+    public GracefulShutdowner gracefulShutdowner() {
+        return new GracefulShutdowner();
     }
-  }
 
-  @Bean
-  @ConditionalOnProperty(value = "tw-graceful-shutdown.db-scheduler.enabled")
-  public ScheduledTaskShutdownStrategy scheduledTaskShutdownStrategy(final Scheduler scheduler) {
-    return new ScheduledTaskShutdownStrategy(scheduler);
-  }
-
-  @Bean
-  @ConditionalOnMissingBean
-  public GracefulShutdowner gracefulShutdowner() {
-    return new GracefulShutdowner();
-  }
-
-  @Bean
-  @ConditionalOnMissingBean
-  public GracefulShutdownStrategiesRegistry gracefulShutdownStrategiesRegistry() {
-    return new DefaultGracefulShutdownStrategiesRegistry();
-  }
+    @Bean
+    @ConditionalOnMissingBean
+    public GracefulShutdownStrategiesRegistry gracefulShutdownStrategiesRegistry() {
+        return new DefaultGracefulShutdownStrategiesRegistry();
+    }
 
 }
