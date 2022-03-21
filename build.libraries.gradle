@@ -16,5 +16,7 @@ ext {
             springBootConfigurationProcessor: 'org.springframework.boot:spring-boot-configuration-processor',
             springBootStarter               : 'org.springframework.boot:spring-boot-starter',
             springBootStarterTest           : 'org.springframework.boot:spring-boot-starter-test',
+            dbSchedulerSpringBootStarter    : 'com.github.kagkarlsson:db-scheduler-spring-boot-starter:11.0'
+
     ]
 }

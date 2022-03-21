@@ -1,7 +1,9 @@
 package com.transferwise.common.gracefulshutdown;
 
+import com.github.kagkarlsson.scheduler.Scheduler;
 import com.transferwise.common.gracefulshutdown.config.GracefulShutdownProperties;
 import com.transferwise.common.gracefulshutdown.config.RequestCountStrategyProperties;
+import com.transferwise.common.gracefulshutdown.config.ScheduledTaskShutdownStrategy;
 import com.transferwise.common.gracefulshutdown.strategies.GracefulShutdownHealthStrategy;
 import com.transferwise.common.gracefulshutdown.strategies.RequestCountGracefulShutdownStrategy;
 import lombok.RequiredArgsConstructor;
@@ -59,6 +61,12 @@ public class GracefulShutdownAutoConfiguration {
     public RequestCountGracefulShutdownStrategy requestCountGracefulShutdownStrategy() {
       return new RequestCountGracefulShutdownStrategy();
     }
+  }
+
+  @Bean
+  @ConditionalOnProperty(value = "tw-graceful-shutdown.db-scheduler.enabled")
+  public ScheduledTaskShutdownStrategy scheduledTaskShutdownStrategy(final Scheduler scheduler) {
+    return new ScheduledTaskShutdownStrategy(scheduler);
   }
 
   @Bean
