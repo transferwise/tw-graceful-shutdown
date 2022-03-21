@@ -1,9 +1,7 @@
 package com.transferwise.common.gracefulshutdown;
 
-import com.github.kagkarlsson.scheduler.Scheduler;
 import com.transferwise.common.gracefulshutdown.config.GracefulShutdownProperties;
 import com.transferwise.common.gracefulshutdown.config.RequestCountStrategyProperties;
-import com.transferwise.common.gracefulshutdown.config.ScheduledTaskShutdownStrategy;
 import com.transferwise.common.gracefulshutdown.strategies.GracefulShutdownHealthStrategy;
 import com.transferwise.common.gracefulshutdown.strategies.RequestCountGracefulShutdownStrategy;
 import lombok.RequiredArgsConstructor;
