@@ -63,11 +63,7 @@ public class GracefulShutdownAutoConfiguration {
     }
   }
 
-  @Bean
-  @ConditionalOnProperty(value = "tw-graceful-shutdown.db-scheduler.enabled")
-  public ScheduledTaskShutdownStrategy scheduledTaskShutdownStrategy(final Scheduler scheduler) {
-    return new ScheduledTaskShutdownStrategy(scheduler);
-  }
+
 
   @Bean
   @ConditionalOnMissingBean

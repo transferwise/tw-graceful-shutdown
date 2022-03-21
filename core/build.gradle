@@ -14,9 +14,8 @@ dependencies {
     implementation libraries.springBootActuator
     implementation libraries.springWeb
     implementation libraries.guava
-    implementation libraries.dbSchedulerSpringBootStarter
 
-
+    compileOnly libraries.dbSchedulerSpringBootStarter
     compileOnly libraries.springContext
     compileOnly libraries.javaxServletApi
     compileOnly libraries.slf4jApi
