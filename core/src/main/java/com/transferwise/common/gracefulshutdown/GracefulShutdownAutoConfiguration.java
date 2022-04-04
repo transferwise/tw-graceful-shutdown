@@ -5,8 +5,9 @@ import com.transferwise.common.gracefulshutdown.config.RequestCountStrategyPrope
 import com.transferwise.common.gracefulshutdown.strategies.GracefulShutdownHealthStrategy;
 import com.transferwise.common.gracefulshutdown.strategies.KagkarlssonDbScheduledTaskShutdownStrategy;
 import com.transferwise.common.gracefulshutdown.strategies.RequestCountGracefulShutdownStrategy;
+import com.transferwise.common.gracefulshutdown.strategies.TaskSchedulersGracefulShutdownStrategy;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -15,11 +16,12 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
 
 @Configuration
 @ConditionalOnProperty(value = "tw-graceful-shutdown.enable", matchIfMissing = true)
 @EnableConfigurationProperties({GracefulShutdownProperties.class})
-@AutoConfigureAfter(name = {"org.springframework.cloud.netflix.eureka.EurekaClientAutoConfiguration"})
+@AutoConfigureOrder(Ordered.LOWEST_PRECEDENCE)
 public class GracefulShutdownAutoConfiguration {
 
   @Configuration
@@ -75,6 +77,17 @@ public class GracefulShutdownAutoConfiguration {
     }
   }
 
+  @Configuration
+  @ConditionalOnBean(type = "org.springframework.scheduling.TaskScheduler")
+  @ConditionalOnProperty(value = "tw-graceful-shutdown.spring-task-scheduler.enabled", matchIfMissing = true)
+  protected static class SpringTaskSchedulerConfiguration {
+
+    @Bean
+    public TaskSchedulersGracefulShutdownStrategy taskSchedulersGracefulShutdownStrategy() {
+      return new TaskSchedulersGracefulShutdownStrategy();
+    }
+  }
+
   @Bean
   @ConditionalOnMissingBean
   public GracefulShutdowner gracefulShutdowner() {
@@ -86,5 +99,6 @@ public class GracefulShutdownAutoConfiguration {
   public GracefulShutdownStrategiesRegistry gracefulShutdownStrategiesRegistry() {
     return new DefaultGracefulShutdownStrategiesRegistry();
   }
+
 
 }

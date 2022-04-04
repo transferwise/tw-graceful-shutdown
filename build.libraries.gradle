@@ -1,6 +1,7 @@
 ext {
     libraries = [
             // version defined
+            awaitility                      : 'org.awaitility:awaitility:4.2.0',
             dbScheduler                     : 'com.github.kagkarlsson:db-scheduler:11.0',
             dbSchedulerSpringBootStarter    : 'com.github.kagkarlsson:db-scheduler-spring-boot-starter:11.0',
             guava                           : 'com.google.guava:guava:31.1-jre',

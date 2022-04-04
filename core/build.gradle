@@ -47,6 +47,7 @@ dependencies {
 
     testImplementation libraries.javaxServletApi
     testImplementation libraries.springBootStarterTest
+    testImplementation libraries.awaitility
     
     testRuntimeOnly libraries.dbSchedulerSpringBootStarter
     testRuntimeOnly libraries.springBootStarterJdbc
