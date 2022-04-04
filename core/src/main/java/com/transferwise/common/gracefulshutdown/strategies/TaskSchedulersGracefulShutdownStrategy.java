@@ -2,6 +2,7 @@ package com.transferwise.common.gracefulshutdown.strategies;
 
 import com.transferwise.common.gracefulshutdown.GracefulShutdownStrategy;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -15,17 +16,17 @@ public class TaskSchedulersGracefulShutdownStrategy implements GracefulShutdownS
   @Autowired
   private ApplicationContext applicationContext;
 
-  private volatile boolean canShutDown = true;
+  private AtomicInteger inProgressShutdowns = new AtomicInteger();
 
   @Override
   public void prepareForShutdown() {
     var taskSchedulers = applicationContext.getBeansOfType(TaskScheduler.class).values();
 
-    canShutDown = false;
     var executors = Executors.newFixedThreadPool(10);
-    executors.submit(() -> {
-      try {
-        for (var taskScheduler : taskSchedulers) {
+    for (var taskScheduler : taskSchedulers) {
+      inProgressShutdowns.incrementAndGet();
+      executors.submit(() -> {
+        try {
           if (taskScheduler instanceof ThreadPoolTaskScheduler) {
             log.info("Shutting down thread pool task scheduler '{}'.", taskScheduler);
             var threadPoolTaskScheduler = (ThreadPoolTaskScheduler) taskScheduler;
@@ -55,17 +56,17 @@ public class TaskSchedulersGracefulShutdownStrategy implements GracefulShutdownS
               log.error("Shutting down concurrent task scheduler executor failed.", t);
             }
           }
+        } catch (Throwable t) {
+          log.error("Stopping a task scheduler failed.", t);
+        } finally {
+          inProgressShutdowns.decrementAndGet();
         }
-      } catch (Throwable t) {
-        log.error("Stopping a task scheduler failed.", t);
-      } finally {
-        canShutDown = true;
-      }
-    });
+      });
+    }
   }
 
   @Override
   public boolean canShutdown() {
-    return canShutDown;
+    return inProgressShutdowns.get() == 0;
   }
 }
