@@ -32,7 +32,7 @@ public class TaskSchedulersGracefulShutdownStrategy implements GracefulShutdownS
             threadPoolTaskScheduler.setWaitForTasksToCompleteOnShutdown(true);
             threadPoolTaskScheduler.shutdown();
           } else if (taskScheduler instanceof ConcurrentTaskScheduler) {
-            log.info("Shutting down thread pool task scheduler '{}'.", taskScheduler);
+            log.info("Shutting down concurrent task scheduler '{}'.", taskScheduler);
             var concurrentTaskScheduler = (ConcurrentTaskScheduler) taskScheduler;
             var executor = concurrentTaskScheduler.getConcurrentExecutor();
 
@@ -45,19 +45,14 @@ public class TaskSchedulersGracefulShutdownStrategy implements GracefulShutdownS
               log.error("Shutting down concurrent task scheduler executor failed.", t);
             }
           } else {
-            boolean shutdownCalled = false;
             try {
               var shutdownMethod = taskScheduler.getClass().getMethod("shutdown");
               log.info("Shutting down unknown task scheduler '{}' using it's 'shutdown()' method.", taskScheduler);
               shutdownMethod.invoke(taskScheduler);
-              shutdownCalled = true;
             } catch (NoSuchMethodException ignored) {
-              // ignored
+              log.warn("Found a task scheduler '{}', but do not know how to shut it down. Please contact SRE team.", taskScheduler);
             } catch (Throwable t) {
               log.error("Shutting down concurrent task scheduler executor failed.", t);
-            }
-            if (!shutdownCalled) {
-              log.warn("Found a task scheduler '{}', but do not know how to shut it down. Please contact SRE team.", taskScheduler);
             }
           }
         }
