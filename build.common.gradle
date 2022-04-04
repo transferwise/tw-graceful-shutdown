@@ -59,12 +59,6 @@ configurations {
 
 test {
     useJUnitPlatform()
-
-    testLogging {
-        events "passed", "skipped", "failed", "standardError"
-        showStackTraces = true
-        exceptionFormat = 'full'
-    }
 }
 
 tasks.withType(Checkstyle) {

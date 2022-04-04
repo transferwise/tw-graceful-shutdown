@@ -6,6 +6,31 @@ ext.projectArtifactName = 'tw-graceful-shutdown'
 apply from: '../build.common.gradle'
 apply from: '../build.publishing.gradle'
 
+sourceSets {
+    test2 {
+        java.srcDir "$projectDir/src/test2/java"
+        resources.srcDir "$projectDir/src/test2/resources"
+        compileClasspath += main.output
+        runtimeClasspath += main.output
+    }
+}
+
+configurations {
+    test2Implementation.extendsFrom implementation
+    test2Runtime.extendsFrom runtime
+}
+
+task test2(type: Test) {
+    testClassesDirs = sourceSets.test2.output.classesDirs
+    classpath = sourceSets.test2.runtimeClasspath
+}
+
+test2 {
+    useJUnitPlatform()
+}
+
+check.dependsOn test2
+
 dependencies {
     api project(':tw-graceful-shutdown-interfaces')
 
@@ -22,6 +47,13 @@ dependencies {
 
     testImplementation libraries.javaxServletApi
     testImplementation libraries.springBootStarterTest
+    
+    testRuntimeOnly libraries.dbSchedulerSpringBootStarter
+    testRuntimeOnly libraries.springBootStarterJdbc
+    testRuntimeOnly libraries.h2
+    testRuntimeOnly "org.flywaydb:flyway-core"
 
     testCompileOnly libraries.spotbugsAnnotations
+
+    test2Implementation libraries.springBootStarterTest
 }

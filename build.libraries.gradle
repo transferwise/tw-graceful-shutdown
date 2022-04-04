@@ -1,22 +1,25 @@
 ext {
     libraries = [
             // version defined
-            guava                           : 'com.google.guava:guava:30.1.1-jre',
-            spotbugsAnnotations             : 'com.github.spotbugs:spotbugs-annotations:4.5.2',
-            springBootDependencies          : 'org.springframework.boot:spring-boot-dependencies:2.5.8',
-            twBaseUtils                     : 'com.transferwise.common:tw-base-utils:1.5.0',
+            dbScheduler                     : 'com.github.kagkarlsson:db-scheduler:11.0',
+            dbSchedulerSpringBootStarter    : 'com.github.kagkarlsson:db-scheduler-spring-boot-starter:11.0',
+            guava                           : 'com.google.guava:guava:31.1-jre',
+            spotbugsAnnotations             : "com.github.spotbugs:spotbugs-annotations:${spotbugs.toolVersion.get()}",
+            springBootDependencies          : "org.springframework.boot:spring-boot-dependencies:${System.getenv("SPRING_BOOT_VERSION") ?: '2.5.11'}",
+            twBaseUtils                     : 'com.transferwise.common:tw-base-utils:1.7.1',
 
             // versions managed by spring-boot-dependencies platform
-            springWeb                       : 'org.springframework:spring-web',
-            springContext                   : 'org.springframework:spring-context',
+            flywayCore                      : 'org.flywaydb:flyway-core',
+            h2                              : 'com.h2database:h2',
             javaxServletApi                 : 'javax.servlet:javax.servlet-api',
-            slf4jApi                        : 'org.slf4j:slf4j-api',
             lombok                          : 'org.projectlombok:lombok',
+            slf4jApi                        : 'org.slf4j:slf4j-api',
             springBootActuator              : 'org.springframework.boot:spring-boot-actuator',
             springBootConfigurationProcessor: 'org.springframework.boot:spring-boot-configuration-processor',
             springBootStarter               : 'org.springframework.boot:spring-boot-starter',
+            springBootStarterJdbc           : "org.springframework.boot:spring-boot-starter-jdbc",
             springBootStarterTest           : 'org.springframework.boot:spring-boot-starter-test',
-            dbSchedulerSpringBootStarter    : 'com.github.kagkarlsson:db-scheduler-spring-boot-starter:11.0'
-
+            springContext                   : 'org.springframework:spring-context',
+            springWeb                       : 'org.springframework:spring-web',
     ]
 }

@@ -3,9 +3,11 @@ package com.transferwise.common.gracefulshutdown;
 import com.transferwise.common.gracefulshutdown.config.GracefulShutdownProperties;
 import com.transferwise.common.gracefulshutdown.config.RequestCountStrategyProperties;
 import com.transferwise.common.gracefulshutdown.strategies.GracefulShutdownHealthStrategy;
+import com.transferwise.common.gracefulshutdown.strategies.KagkarlssonDbScheduledTaskShutdownStrategy;
 import com.transferwise.common.gracefulshutdown.strategies.RequestCountGracefulShutdownStrategy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -61,7 +63,17 @@ public class GracefulShutdownAutoConfiguration {
     }
   }
 
+  @Configuration
+  @ConditionalOnClass(name = "com.github.kagkarlsson.scheduler.Scheduler")
+  @ConditionalOnProperty(value = "tw-graceful-shutdown.kagkarlsson-db-scheduler.enabled", matchIfMissing = true)
+  @ConditionalOnBean(com.github.kagkarlsson.scheduler.Scheduler.class)
+  protected static class KagkarlssonDbScheduledConfiguration {
 
+    @Bean
+    public KagkarlssonDbScheduledTaskShutdownStrategy kagkarlssonDbScheduledTaskShutdownStrategy() {
+      return new KagkarlssonDbScheduledTaskShutdownStrategy();
+    }
+  }
 
   @Bean
   @ConditionalOnMissingBean
