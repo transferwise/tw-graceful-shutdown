@@ -16,8 +16,8 @@ sourceSets {
 }
 
 configurations {
-    test2Implementation.extendsFrom implementation
-    test2Runtime.extendsFrom runtime
+    test2Implementation.extendsFrom implementation,local
+    test2Runtime.extendsFrom runtime,local
 }
 
 task test2(type: Test) {

@@ -23,6 +23,7 @@ jobs:
           - 2.4.13
     env:
       SPRING_BOOT_VERSION: ${{ matrix.spring_boot_version }}
+      RUNS_IN_CI: "true"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2

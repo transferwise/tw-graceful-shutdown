@@ -7,6 +7,45 @@ group = 'com.transferwise.common'
 
 apply from: "${project.rootDir}/build.libraries.gradle"
 
+configurations {
+    all {
+        exclude module: 'slf4j-log4j12'
+
+        resolutionStrategy {
+            failOnVersionConflict()
+            preferProjectModules()
+            if (System.getenv("RUNS_IN_CI") == "true") {
+                // This is faster, than using Gradle's `--refresh-dependencies`, which will refresh also all non-dynamic things.
+                cacheDynamicVersionsFor 10, 'minutes'
+                cacheChangingModulesFor 10, 'minutes'
+            }
+        }
+    }
+
+    local {
+        canBeResolved(false)
+        canBeConsumed(false)
+    }
+    compileClasspath {
+        extendsFrom(local)
+    }
+    runtimeClasspath {
+        extendsFrom(local)
+    }
+    testCompileClasspath {
+        extendsFrom(local)
+    }
+    testRuntimeClasspath {
+        extendsFrom(local)
+    }
+    annotationProcessor {
+        extendsFrom(local)
+    }
+    testAnnotationProcessor {
+        extendsFrom(local)
+    }
+}
+
 java {
     sourceCompatibility = JavaVersion.VERSION_11
     targetCompatibility = JavaVersion.VERSION_11
@@ -24,17 +63,8 @@ jar {
 }
 
 dependencies {
-    annotationProcessor platform(libraries.springBootDependencies)
-    implementation platform(libraries.springBootDependencies)
-    compileOnly platform(libraries.springBootDependencies)
-    testAnnotationProcessor platform(libraries.springBootDependencies)
-
-    annotationProcessor libraries.lombok
-    annotationProcessor libraries.springBootConfigurationProcessor
-    testAnnotationProcessor libraries.lombok
-
-    implementation libraries.lombok
-
+    local platform(libraries.springBootDependencies + '!!')
+    local libraries.lombok
     compileOnly libraries.spotbugsAnnotations
 }
 
@@ -49,12 +79,6 @@ repositories {
         url 'https://arti.tw.ee/artifactory/libs-release'
     }
     mavenLocal()
-}
-
-configurations {
-    all {
-        exclude module: 'slf4j-log4j12'
-    }
 }
 
 test {

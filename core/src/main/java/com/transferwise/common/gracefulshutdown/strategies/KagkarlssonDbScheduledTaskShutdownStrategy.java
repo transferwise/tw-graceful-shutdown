@@ -21,7 +21,7 @@ public class KagkarlssonDbScheduledTaskShutdownStrategy implements GracefulShutd
 
     new Thread(() -> {
       try {
-        // Blocking operation, that is why we have to run it another thread.
+        // `scheduler.stop` is a blocking operation, that is why we have to run it another thread.
         // Default shutdown max wait  for the scheduler is even 30 minutes.
         scheduler.stop();
       } catch (Throwable t) {
