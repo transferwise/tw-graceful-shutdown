@@ -20,11 +20,12 @@ public class TaskSchedulersGracefulShutdownStrategy implements GracefulShutdownS
 
   @Override
   public void prepareForShutdown() {
-    var taskSchedulers = applicationContext.getBeansOfType(TaskScheduler.class).values();
-
     var executors = Executors.newFixedThreadPool(10);
+
+    var taskSchedulers = applicationContext.getBeansOfType(TaskScheduler.class).values();
+    inProgressShutdowns.getAndSet(taskSchedulers.size());
+
     for (var taskScheduler : taskSchedulers) {
-      inProgressShutdowns.incrementAndGet();
       executors.submit(() -> {
         try {
           if (taskScheduler instanceof ThreadPoolTaskScheduler) {
