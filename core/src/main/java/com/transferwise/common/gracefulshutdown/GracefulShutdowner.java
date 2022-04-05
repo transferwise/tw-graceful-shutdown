@@ -96,7 +96,7 @@ public class GracefulShutdowner implements ApplicationListener<ApplicationReadyE
             break;
           }
           log.info("Not shutting down yet, {} strategies have red light. Waiting for {} ms for next check.",
-                  redLightStrategies, properties.getStrategiesCheckIntervalTimeMs());
+              redLightStrategies, properties.getStrategiesCheckIntervalTimeMs());
           Thread.sleep(properties.getStrategiesCheckIntervalTimeMs());
         }
 

@@ -3,3 +3,8 @@ spring:
     username: sa
     password: password
     url: jdbc:h2:mem:testdb
+
+db-scheduler:
+  # Allow Flyway to run first.
+  delay-startup-until-context-ready: true
+  
