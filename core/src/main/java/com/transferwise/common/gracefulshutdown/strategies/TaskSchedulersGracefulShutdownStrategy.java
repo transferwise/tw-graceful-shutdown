@@ -1,6 +1,9 @@
 package com.transferwise.common.gracefulshutdown.strategies;
 
 import com.transferwise.common.gracefulshutdown.GracefulShutdownStrategy;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.extern.slf4j.Slf4j;
@@ -16,16 +19,21 @@ public class TaskSchedulersGracefulShutdownStrategy implements GracefulShutdownS
   @Autowired
   private ApplicationContext applicationContext;
 
+  private List<TaskScheduler> taskSchedulers = new ArrayList<>();
+
   private AtomicInteger inProgressShutdowns = new AtomicInteger();
 
   @Override
   public void prepareForShutdown() {
     var executors = Executors.newFixedThreadPool(10);
 
-    var taskSchedulers = applicationContext.getBeansOfType(TaskScheduler.class).values();
+    var taskSchedulerBeans = applicationContext.getBeansOfType(TaskScheduler.class).values();
     inProgressShutdowns.getAndSet(taskSchedulers.size());
 
-    for (var taskScheduler : taskSchedulers) {
+    var allTaskSchedulers = new HashSet(taskSchedulerBeans);
+    allTaskSchedulers.addAll(taskSchedulers);
+
+    for (var taskScheduler : allTaskSchedulers) {
       executors.submit(() -> {
         try {
           if (taskScheduler instanceof ThreadPoolTaskScheduler) {
@@ -69,5 +77,9 @@ public class TaskSchedulersGracefulShutdownStrategy implements GracefulShutdownS
   @Override
   public boolean canShutdown() {
     return inProgressShutdowns.get() == 0;
+  }
+
+  public void addTaskScheduler(TaskScheduler scheduler) {
+    taskSchedulers.add(scheduler);
   }
 }
