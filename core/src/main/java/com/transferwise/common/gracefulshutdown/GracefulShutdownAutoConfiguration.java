@@ -103,7 +103,7 @@ public class GracefulShutdownAutoConfiguration {
     }
 
     @Bean
-    @Order()
+    @Order
     public SchedulingConfigurer twGsSchedulingConfigurer(TaskSchedulersGracefulShutdownStrategy taskSchedulersGracefulShutdownStrategy) {
       return taskRegistrar -> taskSchedulersGracefulShutdownStrategy.addTaskScheduler(taskRegistrar.getScheduler());
     }
