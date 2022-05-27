@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,17 +29,21 @@ public class TaskSchedulersGracefulShutdownStrategy implements GracefulShutdownS
     var executors = Executors.newFixedThreadPool(10);
 
     var taskSchedulerBeans = applicationContext.getBeansOfType(TaskScheduler.class).values();
-    inProgressShutdowns.getAndSet(taskSchedulers.size());
-
     var allTaskSchedulers = new HashSet(taskSchedulerBeans);
     allTaskSchedulers.addAll(taskSchedulers);
 
-    for (var taskScheduler : allTaskSchedulers) {
+    for (var taskSchedulerProto : allTaskSchedulers) {
+      inProgressShutdowns.incrementAndGet();
       executors.submit(() -> {
+        var taskScheduler = taskSchedulerProto;
         try {
           if (taskScheduler instanceof ThreadPoolTaskScheduler) {
             log.info("Shutting down thread pool task scheduler '{}'.", taskScheduler);
             var threadPoolTaskScheduler = (ThreadPoolTaskScheduler) taskScheduler;
+
+            threadPoolTaskScheduler.getScheduledThreadPoolExecutor().setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
+            threadPoolTaskScheduler.getScheduledThreadPoolExecutor().setContinueExistingPeriodicTasksAfterShutdownPolicy(false);
+            threadPoolTaskScheduler.getScheduledThreadPoolExecutor().getQueue().clear();
             threadPoolTaskScheduler.setWaitForTasksToCompleteOnShutdown(true);
             threadPoolTaskScheduler.shutdown();
           } else if (taskScheduler instanceof ConcurrentTaskScheduler) {
@@ -46,13 +51,19 @@ public class TaskSchedulersGracefulShutdownStrategy implements GracefulShutdownS
             var concurrentTaskScheduler = (ConcurrentTaskScheduler) taskScheduler;
             var executor = concurrentTaskScheduler.getConcurrentExecutor();
 
-            try {
-              var shutdownMethod = executor.getClass().getMethod("shutdown");
-              shutdownMethod.invoke(executor);
-            } catch (NoSuchMethodException ignored) {
-              // ignored
-            } catch (Throwable t) {
-              log.error("Shutting down concurrent task scheduler executor failed.", t);
+            if (executor instanceof ScheduledThreadPoolExecutor) {
+              ((ScheduledThreadPoolExecutor) executor).setContinueExistingPeriodicTasksAfterShutdownPolicy(false);
+              ((ScheduledThreadPoolExecutor) executor).setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
+              ((ScheduledThreadPoolExecutor) executor).shutdown();
+            } else {
+              try {
+                var shutdownMethod = executor.getClass().getMethod("shutdown");
+                shutdownMethod.invoke(executor);
+              } catch (NoSuchMethodException ignored) {
+                // ignored
+              } catch (Throwable t) {
+                log.error("Shutting down concurrent task scheduler executor failed.", t);
+              }
             }
           } else {
             try {
