@@ -25,6 +25,10 @@ task test2(type: Test) {
     classpath = sourceSets.test2.runtimeClasspath
 }
 
+tasks.findByName("processTest2Resources").configure {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
 test2 {
     useJUnitPlatform()
 }

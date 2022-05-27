@@ -13,8 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
 @ActiveProfiles({"test"})
-@SpringBootTest(classes = {TestBApplication.class},
-    properties = {"tw-graceful-shutdown.clientsReactionTimeMs=1", "tw-graceful-shutdown.shutdownTimeoutMs=1"})
+@SpringBootTest(classes = {TestBApplication.class})
 class AlternativeSchedulingShutdownerIntTest {
 
   @Autowired

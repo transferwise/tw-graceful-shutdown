@@ -11,8 +11,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 // Force a separate ApplicationContext, because we will close this one.
 @ActiveProfiles({"test", "shutdown"})
-@SpringBootTest(classes = {TestApplication.class},
-    properties = {"tw-graceful-shutdown.clientsReactionTimeMs=1", "tw-graceful-shutdown.shutdownTimeoutMs=1"})
+@SpringBootTest(classes = {TestApplication.class})
 public class StrategyExecutionOrderIntTest {
 
   @Autowired
