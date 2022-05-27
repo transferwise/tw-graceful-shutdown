@@ -41,9 +41,10 @@ public class TaskSchedulersGracefulShutdownStrategy implements GracefulShutdownS
             log.info("Shutting down thread pool task scheduler '{}'.", taskScheduler);
             var threadPoolTaskScheduler = (ThreadPoolTaskScheduler) taskScheduler;
 
-            threadPoolTaskScheduler.getScheduledThreadPoolExecutor().setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
-            threadPoolTaskScheduler.getScheduledThreadPoolExecutor().setContinueExistingPeriodicTasksAfterShutdownPolicy(false);
-            threadPoolTaskScheduler.getScheduledThreadPoolExecutor().getQueue().clear();
+            var scheduledThreadPoolExecutor = threadPoolTaskScheduler.getScheduledThreadPoolExecutor();
+            scheduledThreadPoolExecutor.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
+            scheduledThreadPoolExecutor.setContinueExistingPeriodicTasksAfterShutdownPolicy(false);
+            scheduledThreadPoolExecutor.getQueue().clear();
             threadPoolTaskScheduler.setWaitForTasksToCompleteOnShutdown(true);
             threadPoolTaskScheduler.shutdown();
           } else if (taskScheduler instanceof ConcurrentTaskScheduler) {
@@ -52,9 +53,11 @@ public class TaskSchedulersGracefulShutdownStrategy implements GracefulShutdownS
             var executor = concurrentTaskScheduler.getConcurrentExecutor();
 
             if (executor instanceof ScheduledThreadPoolExecutor) {
-              ((ScheduledThreadPoolExecutor) executor).setContinueExistingPeriodicTasksAfterShutdownPolicy(false);
-              ((ScheduledThreadPoolExecutor) executor).setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
-              ((ScheduledThreadPoolExecutor) executor).shutdown();
+              var scheduledThreadPoolExecutor = (ScheduledThreadPoolExecutor) executor;
+              scheduledThreadPoolExecutor.setContinueExistingPeriodicTasksAfterShutdownPolicy(false);
+              scheduledThreadPoolExecutor.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
+              scheduledThreadPoolExecutor.getQueue().clear();
+              scheduledThreadPoolExecutor.shutdown();
             } else {
               try {
                 var shutdownMethod = executor.getClass().getMethod("shutdown");
