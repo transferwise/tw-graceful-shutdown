@@ -8,3 +8,7 @@ db-scheduler:
   # Allow Flyway to run first.
   delay-startup-until-context-ready: true
   
+tw-graceful-shutdown:
+  shutdownTimeoutMs: 15000
+  clientsReactionTimeMs: 1
+  strategiesCheckIntervalTimeMs: 500
