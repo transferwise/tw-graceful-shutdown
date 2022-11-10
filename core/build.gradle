@@ -41,6 +41,7 @@ dependencies {
     implementation libraries.twBaseUtils
     implementation libraries.springBootStarter
     implementation libraries.springBootActuator
+    annotationProcessor libraries.springBootConfigurationProcessor
     implementation libraries.springWeb
     implementation libraries.guava
 
