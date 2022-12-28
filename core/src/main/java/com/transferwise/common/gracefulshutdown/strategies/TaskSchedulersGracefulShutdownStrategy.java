@@ -4,6 +4,7 @@ import com.transferwise.common.gracefulshutdown.GracefulShutdownStrategy;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -58,6 +59,8 @@ public class TaskSchedulersGracefulShutdownStrategy implements GracefulShutdownS
               scheduledThreadPoolExecutor.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
               scheduledThreadPoolExecutor.getQueue().clear();
               scheduledThreadPoolExecutor.shutdown();
+            } else if (executor instanceof ExecutorService) {
+              ((ExecutorService) executor).shutdown();
             } else {
               try {
                 var shutdownMethod = executor.getClass().getMethod("shutdown");
