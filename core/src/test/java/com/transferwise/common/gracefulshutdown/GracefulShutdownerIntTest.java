@@ -15,6 +15,8 @@ import org.springframework.boot.actuate.health.Status;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.time.Duration;
+
 @ActiveProfiles({"test"})
 @SpringBootTest(classes = {TestApplication.class})
 class GracefulShutdownerIntTest {
@@ -55,8 +57,7 @@ class GracefulShutdownerIntTest {
 
     final var newSchedulerCounterValue = testApplication.schedulerCounter.get();
 
-    // No idea, how to make it without sleep. We want to check if the scheduling stopped.
-    Thread.sleep(50);
+    await().atMost(Duration.ofSeconds(1)).until(() -> !gracefulShutdowner.isRunning());
     assertThat(testApplication.schedulerCounter.get()).isEqualTo(newSchedulerCounterValue);
 
     assertThat(gracefulShutdowner.isRunning()).isFalse();

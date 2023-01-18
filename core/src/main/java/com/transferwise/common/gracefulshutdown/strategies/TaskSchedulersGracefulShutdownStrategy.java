@@ -8,6 +8,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -16,21 +20,24 @@ import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 @Slf4j
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true)
 public class TaskSchedulersGracefulShutdownStrategy implements GracefulShutdownStrategy {
 
   @Autowired
   private ApplicationContext applicationContext;
 
-  private List<TaskScheduler> taskSchedulers = new ArrayList<>();
+  private final List<TaskScheduler> taskSchedulers = new ArrayList<>();
 
-  private AtomicInteger inProgressShutdowns = new AtomicInteger();
+  private final AtomicInteger inProgressShutdowns = new AtomicInteger();
 
   @Override
   public void prepareForShutdown() {
     var executors = Executors.newFixedThreadPool(10);
 
     var taskSchedulerBeans = applicationContext.getBeansOfType(TaskScheduler.class).values();
-    var allTaskSchedulers = new HashSet(taskSchedulerBeans);
+    var allTaskSchedulers = new HashSet<>(taskSchedulerBeans);
     allTaskSchedulers.addAll(taskSchedulers);
 
     for (var taskSchedulerProto : allTaskSchedulers) {
