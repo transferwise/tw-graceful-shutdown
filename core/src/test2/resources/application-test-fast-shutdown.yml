@@ -1,0 +1,4 @@
+tw-graceful-shutdown:
+  shutdownTimeoutMs: 1000
+  clientsReactionTimeMs: 1
+  strategiesCheckIntervalTimeMs: 100

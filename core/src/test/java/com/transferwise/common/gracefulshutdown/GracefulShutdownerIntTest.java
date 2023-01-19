@@ -8,14 +8,13 @@ import com.transferwise.common.gracefulshutdown.strategies.KagkarlssonDbSchedule
 import com.transferwise.common.gracefulshutdown.strategies.RequestCountGracefulShutdownStrategy;
 import com.transferwise.common.gracefulshutdown.strategies.TaskSchedulersGracefulShutdownStrategy;
 import com.transferwise.common.gracefulshutdown.test.TestApplication;
+import java.time.Duration;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.Status;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-
-import java.time.Duration;
 
 @ActiveProfiles({"test"})
 @SpringBootTest(classes = {TestApplication.class})

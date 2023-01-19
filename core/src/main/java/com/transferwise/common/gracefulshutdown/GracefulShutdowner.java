@@ -82,7 +82,11 @@ public class GracefulShutdowner implements ApplicationListener<ApplicationReadyE
 
         long start = System.currentTimeMillis();
         List<GracefulShutdownStrategy> redLightStrategies = new ArrayList<>(strategies);
-        while (System.currentTimeMillis() - start < properties.getShutdownTimeoutMs()) {
+
+        // slightly increase timeout here
+        // now strategies could safely try to shut down within GracefulShutdownProperties.getShutdownTimeoutMs()
+        int safeShutdownTimeoutMs = properties.getShutdownTimeoutMs() + 500;
+        while (System.currentTimeMillis() - start < safeShutdownTimeoutMs) {
           redLightStrategies = redLightStrategies.stream().filter((s) -> {
             try {
               return !s.canShutdown();
