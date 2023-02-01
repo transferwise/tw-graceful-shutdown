@@ -18,20 +18,28 @@ public class ExecutorServiceGracefulShutdownStrategy extends BaseReactiveResourc
   protected Duration getStrategyShutdownDelay() {
     // In case shutdown was called right after call to endpoint:
     // this will give time for endpoint using ExecutorService to send task if required.
-    return Duration.ofMillis(getResourceFullShutdownTimeoutMs() / 2);
+
+    // This is for cases then app is configured incorrectly
+    if (getGracefulShutdownProperties().getClientsReactionTimeMs() > getResourceFullShutdownTimeoutMs()) {
+      return Duration.ofMillis(getResourceFullShutdownTimeoutMs());
+    }
+
+    // we give 1/3 of resource shutdown time to allow endpoints called right before client reaction
+    // to proceed and successfully submit tasks
+    return Duration.ofMillis(getGracefulShutdownProperties().getClientsReactionTimeMs() + getResourceFullShutdownTimeoutMs() / 3);
   }
 
   @Override
   protected Duration getResourceGracefulShutdownTimeout() {
-    // half of getResourceFullShutdownTimeoutMs was used in getStrategyShutdownDelay
-    // use 4/10 of full resource shutdown time for graceful shutdown
-    return Duration.ofMillis(getResourceFullShutdownTimeoutMs() / 10 * 4);
+    // getStrategyShutdownDelay time of getResourceFullShutdownTimeoutMs was already used.
+    // use 9/10 of remaining time for graceful shutdown
+    return Duration.ofMillis((getResourceFullShutdownTimeoutMs() - getStrategyShutdownDelay().toMillis()) / 10 * 9);
   }
 
   @Override
   protected Duration getResourceForcedShutdownTimeout() {
-    // use remaining 1/10 of full resource shutdown time for graceful shutdown
-    return Duration.ofMillis(getResourceFullShutdownTimeoutMs() / 10);
+    // use remaining time for forced shutdown
+    return Duration.ofMillis((getResourceFullShutdownTimeoutMs() - getStrategyShutdownDelay().toMillis()) / 10);
   }
 
   public ExecutorServiceGracefulShutdownStrategy(ApplicationContext applicationContext, GracefulShutdownProperties gracefulShutdownProperties) {
