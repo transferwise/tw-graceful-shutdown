@@ -8,13 +8,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @SuppressWarnings("checkstyle:magicnumber")
 public class GracefulShutdownProperties {
 
-  private int shutdownTimeoutMs = 60000;
+  private int shutdownTimeoutMs = 90_000;
 
-  private int clientsReactionTimeMs = 30000;
+  private int clientsReactionTimeMs = 30_000;
 
-  private int strategiesCheckIntervalTimeMs = 5000;
-
-  public int getStrategyShutdownTimeout() {
-    return shutdownTimeoutMs * 2;
-  }
+  private int strategiesCheckIntervalTimeMs = 5_000;
 }

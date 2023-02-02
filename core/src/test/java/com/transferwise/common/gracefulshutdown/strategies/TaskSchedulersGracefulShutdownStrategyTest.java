@@ -11,10 +11,7 @@ class TaskSchedulersGracefulShutdownStrategyTest {
   @Test
   public void shutdown_invoked_on_private_classes() {
     // GIVEN
-    var strategy = new TaskSchedulersGracefulShutdownStrategy();
-    strategy = strategy.toBuilder()
-            .applicationContext(new StaticApplicationContext())
-            .build();
+    var strategy = new TaskSchedulersGracefulShutdownStrategy(new StaticApplicationContext());
 
     var executor = Executors.newSingleThreadScheduledExecutor();
     var scheduler = new ConcurrentTaskScheduler(executor);

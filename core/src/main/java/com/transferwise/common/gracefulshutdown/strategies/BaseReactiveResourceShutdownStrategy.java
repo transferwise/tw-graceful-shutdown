@@ -60,7 +60,7 @@ public abstract class BaseReactiveResourceShutdownStrategy<T> implements Gracefu
    * @return {@link Duration}
    */
   protected Duration getStrategyShutdownTimeout() {
-    return Duration.ofMillis(this.gracefulShutdownProperties.getStrategyShutdownTimeout());
+    return Duration.ofMillis(this.gracefulShutdownProperties.getShutdownTimeoutMs());
   }
 
   /**
@@ -69,9 +69,9 @@ public abstract class BaseReactiveResourceShutdownStrategy<T> implements Gracefu
    */
   protected int getResourceFullShutdownTimeoutMs() {
     // resource should shut down a little earlier than StrategyShutdownTimeout
-    int result = this.gracefulShutdownProperties.getStrategyShutdownTimeout() - 250;
+    int result = this.gracefulShutdownProperties.getShutdownTimeoutMs() - 250;
     if (result < 1000) {
-      result = this.gracefulShutdownProperties.getStrategyShutdownTimeout();
+      result = this.gracefulShutdownProperties.getShutdownTimeoutMs();
     }
 
     return result;

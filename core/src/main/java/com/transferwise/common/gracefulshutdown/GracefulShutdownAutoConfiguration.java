@@ -88,8 +88,8 @@ public class GracefulShutdownAutoConfiguration {
   protected static class SpringTaskSchedulerConfiguration {
 
     @Bean
-    public TaskSchedulersGracefulShutdownStrategy taskSchedulersGracefulShutdownStrategy() {
-      return new TaskSchedulersGracefulShutdownStrategy();
+    public TaskSchedulersGracefulShutdownStrategy taskSchedulersGracefulShutdownStrategy(@Autowired ApplicationContext applicationContext) {
+      return new TaskSchedulersGracefulShutdownStrategy(applicationContext);
     }
   }
 
@@ -101,8 +101,8 @@ public class GracefulShutdownAutoConfiguration {
   protected static class SpringTaskSchedulerAlternativeConfiguration {
 
     @Bean
-    public TaskSchedulersGracefulShutdownStrategy taskSchedulersGracefulShutdownStrategy() {
-      return new TaskSchedulersGracefulShutdownStrategy();
+    public TaskSchedulersGracefulShutdownStrategy taskSchedulersGracefulShutdownStrategy(@Autowired ApplicationContext applicationContext) {
+      return new TaskSchedulersGracefulShutdownStrategy(applicationContext);
     }
 
     @Bean

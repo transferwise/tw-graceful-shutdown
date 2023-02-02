@@ -8,22 +8,16 @@ import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.TaskScheduler;
 
 @Slf4j
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder(toBuilder = true)
+@RequiredArgsConstructor
 public class TaskSchedulersGracefulShutdownStrategy implements GracefulShutdownStrategy {
 
-  @Autowired
-  private ApplicationContext applicationContext;
+  private final ApplicationContext applicationContext;
 
   private final List<TaskScheduler> taskSchedulers = new ArrayList<>();
 
