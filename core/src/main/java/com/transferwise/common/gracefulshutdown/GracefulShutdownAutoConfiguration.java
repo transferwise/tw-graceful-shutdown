@@ -2,11 +2,13 @@ package com.transferwise.common.gracefulshutdown;
 
 import com.transferwise.common.gracefulshutdown.config.GracefulShutdownProperties;
 import com.transferwise.common.gracefulshutdown.config.RequestCountStrategyProperties;
+import com.transferwise.common.gracefulshutdown.strategies.ExecutorServiceGracefulShutdownStrategy;
 import com.transferwise.common.gracefulshutdown.strategies.GracefulShutdownHealthStrategy;
 import com.transferwise.common.gracefulshutdown.strategies.KagkarlssonDbScheduledTaskShutdownStrategy;
 import com.transferwise.common.gracefulshutdown.strategies.RequestCountGracefulShutdownStrategy;
 import com.transferwise.common.gracefulshutdown.strategies.TaskSchedulersGracefulShutdownStrategy;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -14,6 +16,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
@@ -85,8 +88,8 @@ public class GracefulShutdownAutoConfiguration {
   protected static class SpringTaskSchedulerConfiguration {
 
     @Bean
-    public TaskSchedulersGracefulShutdownStrategy taskSchedulersGracefulShutdownStrategy() {
-      return new TaskSchedulersGracefulShutdownStrategy();
+    public TaskSchedulersGracefulShutdownStrategy taskSchedulersGracefulShutdownStrategy(@Autowired ApplicationContext applicationContext) {
+      return new TaskSchedulersGracefulShutdownStrategy(applicationContext);
     }
   }
 
@@ -98,14 +101,28 @@ public class GracefulShutdownAutoConfiguration {
   protected static class SpringTaskSchedulerAlternativeConfiguration {
 
     @Bean
-    public TaskSchedulersGracefulShutdownStrategy taskSchedulersGracefulShutdownStrategy() {
-      return new TaskSchedulersGracefulShutdownStrategy();
+    public TaskSchedulersGracefulShutdownStrategy taskSchedulersGracefulShutdownStrategy(@Autowired ApplicationContext applicationContext) {
+      return new TaskSchedulersGracefulShutdownStrategy(applicationContext);
     }
 
     @Bean
     @Order
     public SchedulingConfigurer twGsSchedulingConfigurer(TaskSchedulersGracefulShutdownStrategy taskSchedulersGracefulShutdownStrategy) {
       return taskRegistrar -> taskSchedulersGracefulShutdownStrategy.addTaskScheduler(taskRegistrar.getScheduler());
+    }
+  }
+
+  @Configuration
+  @ConditionalOnClass(name = "java.util.concurrent.ExecutorService")
+  @ConditionalOnProperty(value = "tw-graceful-shutdown.executor-service.enabled", matchIfMissing = true)
+  @ConditionalOnBean(java.util.concurrent.ExecutorService.class)
+  protected static class ExecutorServiceGracefulShutdownStrategyConfiguration {
+    @Bean
+    public ExecutorServiceGracefulShutdownStrategy executorServiceGracefulShutdownStrategy(
+            @Autowired ApplicationContext applicationContext,
+            @Autowired GracefulShutdownProperties gracefulShutdownProperties
+    ) {
+      return new ExecutorServiceGracefulShutdownStrategy(applicationContext, gracefulShutdownProperties);
     }
   }
 

@@ -37,14 +37,14 @@ public class GracefulShutdowner implements ApplicationListener<ApplicationReadyE
   private DefaultLifecycleProcessor defaultLifecycleProcessor;
 
   private boolean started;
-  private AtomicBoolean isShuttingDown = new AtomicBoolean(false);
+  private final AtomicBoolean isShuttingDown = new AtomicBoolean(false);
 
   @PostConstruct
   public void init() {
     log.info("Initialized graceful shutdown with timeout {} ms. Client reaction timeout will be {} ms.",
         properties.getShutdownTimeoutMs(), properties.getClientsReactionTimeMs());
     if (defaultLifecycleProcessor != null) {
-      defaultLifecycleProcessor.setTimeoutPerShutdownPhase(2 * (properties.getClientsReactionTimeMs() + properties.getShutdownTimeoutMs()));
+      defaultLifecycleProcessor.setTimeoutPerShutdownPhase(2L * (properties.getClientsReactionTimeMs() + properties.getShutdownTimeoutMs()));
     }
   }
 
@@ -82,7 +82,11 @@ public class GracefulShutdowner implements ApplicationListener<ApplicationReadyE
 
         long start = System.currentTimeMillis();
         List<GracefulShutdownStrategy> redLightStrategies = new ArrayList<>(strategies);
-        while (System.currentTimeMillis() - start < properties.getShutdownTimeoutMs()) {
+
+        // increase timeout here
+        // now strategies could safely try to shut down within GracefulShutdownProperties.getStrategyShutdownTimeout()
+        int safeShutdownTimeoutMs = properties.getShutdownTimeoutMs() + 5000;
+        while (System.currentTimeMillis() - start < safeShutdownTimeoutMs) {
           redLightStrategies = redLightStrategies.stream().filter((s) -> {
             try {
               return !s.canShutdown();

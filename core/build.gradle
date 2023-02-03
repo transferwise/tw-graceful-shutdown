@@ -43,6 +43,7 @@ dependencies {
     implementation libraries.springBootActuator
     annotationProcessor libraries.springBootConfigurationProcessor
     implementation libraries.springWeb
+    implementation libraries.reactorCore
     implementation libraries.guava
 
     compileOnly libraries.dbSchedulerSpringBootStarter
@@ -53,7 +54,7 @@ dependencies {
     testImplementation libraries.javaxServletApi
     testImplementation libraries.springBootStarterTest
     testImplementation libraries.awaitility
-    
+
     testRuntimeOnly libraries.dbSchedulerSpringBootStarter
     testRuntimeOnly libraries.springBootStarterJdbc
     testRuntimeOnly libraries.h2
@@ -62,4 +63,5 @@ dependencies {
     testCompileOnly libraries.spotbugsAnnotations
 
     test2Implementation libraries.springBootStarterTest
+    test2Implementation libraries.awaitility
 }

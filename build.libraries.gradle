@@ -22,5 +22,6 @@ ext {
             springBootStarterTest           : 'org.springframework.boot:spring-boot-starter-test',
             springContext                   : 'org.springframework:spring-context',
             springWeb                       : 'org.springframework:spring-web',
+            reactorCore                     : 'io.projectreactor:reactor-core',
     ]
 }

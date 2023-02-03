@@ -8,6 +8,7 @@ import com.transferwise.common.gracefulshutdown.strategies.KagkarlssonDbSchedule
 import com.transferwise.common.gracefulshutdown.strategies.RequestCountGracefulShutdownStrategy;
 import com.transferwise.common.gracefulshutdown.strategies.TaskSchedulersGracefulShutdownStrategy;
 import com.transferwise.common.gracefulshutdown.test.TestApplication;
+import java.time.Duration;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,8 +56,7 @@ class GracefulShutdownerIntTest {
 
     final var newSchedulerCounterValue = testApplication.schedulerCounter.get();
 
-    // No idea, how to make it without sleep. We want to check if the scheduling stopped.
-    Thread.sleep(50);
+    await().atMost(Duration.ofSeconds(1)).until(() -> !gracefulShutdowner.isRunning());
     assertThat(testApplication.schedulerCounter.get()).isEqualTo(newSchedulerCounterValue);
 
     assertThat(gracefulShutdowner.isRunning()).isFalse();
