@@ -11,7 +11,9 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 @Slf4j
 public abstract class ExecutorShutdownUtils {
 
-  /** Will execute appropriate methods to shut down Executor.
+  /**
+   * Will execute appropriate methods to shut down Executor.
+   *
    * @param executor                     {@link Executor} to shutdown
    * @param askToReportOnUnknownExecutor in case of unknown {@link Executor} and absence of shutdown() method warning will be logged with request to
    *                                     contact SRE
@@ -32,6 +34,52 @@ public abstract class ExecutorShutdownUtils {
     } else {
       log.info("Shutting down unknown executor '{}' using it's 'shutdown()' method.", executor);
       shutdownExecutorWithReflection(executor, askToReportOnUnknownExecutor);
+    }
+  }
+
+  /**
+   * Will execute appropriate methods to force shut down Executor.
+   *
+   * @param executor {@link Executor} to shutdown
+   */
+  public static void shutdownExecutorForced(Executor executor) {
+    if (executor instanceof ThreadPoolTaskScheduler) {
+      shutdownThreadPoolTaskSchedulerForced((ThreadPoolTaskScheduler) executor);
+    } else if (executor instanceof ConcurrentTaskScheduler) {
+      ConcurrentTaskScheduler concurrentTaskScheduler = (ConcurrentTaskScheduler) executor;
+      shutdownExecutorForced(concurrentTaskScheduler.getConcurrentExecutor());
+    } else if (executor instanceof ScheduledThreadPoolExecutor) {
+      ScheduledThreadPoolExecutor scheduledThreadPoolExecutor = (ScheduledThreadPoolExecutor) executor;
+      scheduledThreadPoolExecutor.shutdownNow();
+    } else if (executor instanceof ExecutorService) {
+      ((ExecutorService) executor).shutdownNow();
+    } else {
+      log.warn("Unknown executor to shutdown: {}", executor.getClass());
+    }
+  }
+
+  /**
+   * Returns true if all tasks have completed following shut down. Note that isTerminated is never true unless either shutdown or shutdownNow was
+   * called first.
+   *
+   * @param executor {@link Executor} to check
+   * @return true if all tasks have completed following shut down
+   */
+  public static boolean isTerminated(Executor executor) {
+    if (executor instanceof ThreadPoolTaskScheduler) {
+      ThreadPoolTaskScheduler threadPoolTaskScheduler = (ThreadPoolTaskScheduler) executor;
+      return threadPoolTaskScheduler.getScheduledThreadPoolExecutor().isTerminated();
+    } else if (executor instanceof ConcurrentTaskScheduler) {
+      ConcurrentTaskScheduler concurrentTaskScheduler = (ConcurrentTaskScheduler) executor;
+      return isTerminated(concurrentTaskScheduler.getConcurrentExecutor());
+    } else if (executor instanceof ScheduledThreadPoolExecutor) {
+      ScheduledThreadPoolExecutor scheduledThreadPoolExecutor = (ScheduledThreadPoolExecutor) executor;
+      return scheduledThreadPoolExecutor.isTerminated();
+    } else if (executor instanceof ExecutorService) {
+      return ((ExecutorService) executor).isTerminated();
+    } else {
+      log.warn("Unknown executor to check for isTerminated: {}", executor.getClass());
+      return true;
     }
   }
 
@@ -65,9 +113,19 @@ public abstract class ExecutorShutdownUtils {
     ScheduledThreadPoolExecutor scheduledThreadPoolExecutor = threadPoolTaskScheduler.getScheduledThreadPoolExecutor();
     scheduledThreadPoolExecutor.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
     scheduledThreadPoolExecutor.setContinueExistingPeriodicTasksAfterShutdownPolicy(false);
-    scheduledThreadPoolExecutor.getQueue().clear();
     threadPoolTaskScheduler.setWaitForTasksToCompleteOnShutdown(true);
     threadPoolTaskScheduler.shutdown();
+  }
+
+  private static void shutdownThreadPoolTaskSchedulerForced(ThreadPoolTaskScheduler threadPoolTaskScheduler) {
+    ScheduledThreadPoolExecutor scheduledThreadPoolExecutor = threadPoolTaskScheduler.getScheduledThreadPoolExecutor();
+    // may be stale value before we call clear, but it is still worth to have this visibility
+    int tasksInQueueCount = scheduledThreadPoolExecutor.getQueue().size();
+    if (tasksInQueueCount > 0) {
+      log.warn("Before shutdown {} task was in queue to process", tasksInQueueCount);
+    }
+    scheduledThreadPoolExecutor.getQueue().clear();
+    shutdownExecutorForced(scheduledThreadPoolExecutor);
   }
 
   private static void shutdownConcurrentTaskScheduler(ConcurrentTaskScheduler concurrentTaskScheduler) {

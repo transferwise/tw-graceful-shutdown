@@ -47,9 +47,51 @@ public abstract class BaseReactiveResourceShutdownStrategy<T> implements Gracefu
   @NonNull
   private final GracefulShutdownProperties gracefulShutdownProperties;
 
+  @Getter(AccessLevel.PROTECTED)
+  private final Scheduler shutdownScheduler = Schedulers.newBoundedElastic(
+      10,
+      100_000,
+      "ShutdownWorker_" + this.getClass().getSimpleName()
+  );
+
+  private final List<T> addedResources = new ArrayList<>();
+
+  private final AtomicBoolean isShutdownAllowed = new AtomicBoolean(false);
+
+
+  /**
+   * {@link Duration} allowed for resource to force shut down. If not shut down within this time - error will be logged.
+   *
+   * @return {@link Duration}
+   */
+  private Duration getResourceForcedShutdownTimeout() {
+    // This checks incorrect configuration. Timeout error will be logged.
+    if (getStrategyShutdownDelay().toMillis() > getResourceFullShutdownTimeoutMs()) {
+      return Duration.ZERO;
+    }
+
+    // use remaining time for forced shutdown
+    return Duration.ofMillis(getResourceFullShutdownTimeoutMs() - getResourceGracefulShutdownTimeout().toMillis());
+  }
+
+  /**
+   * Interval between checks of the resource termination status. Used by {@link #waitTermination}
+   *
+   * @return {@link Duration} between termination check
+   */
+  private Duration getDelayBetweenTerminationCheck() {
+    return Duration.ofMillis(this.getGracefulShutdownProperties().getResourceCheckIntervalTimeMs());
+  }
+
   /**
    * Will delay strategy shutdown for this {@link Duration}.
-   * @return {@link Duration}
+   * This will additionally affect {@link #getResourceGracefulShutdownTimeout}
+   * and {@link #getResourceForcedShutdownTimeout}
+   * <p>
+   *   Read {@link #getResourceGracefulShutdownTimeShare} for more info.
+   * </p>
+   *
+   * @return {@link Duration} to delay strategy shutdown.
    */
   protected Duration getStrategyShutdownDelay() {
     return Duration.ZERO;
@@ -78,40 +120,49 @@ public abstract class BaseReactiveResourceShutdownStrategy<T> implements Gracefu
   }
 
   /**
-   * {@link Duration} allowed for resource to shut down gracefully. If not shut down within this time -
-   * {@link BaseReactiveResourceShutdownStrategy#shutdownResourceForced} will be called.
-   * @return {@link Duration}
+   * Split ResourceFullShutdownTimeout between graceful and forced shutdown. Value between 0 and 1 is expected where 1 means 100%.
+   * <ul>
+   *   <li>{@link #getResourceGracefulShutdownTimeout} =
+   *   ({@link #getResourceFullShutdownTimeoutMs} -
+   *   {@link #getStrategyShutdownDelay}) *
+   *   {@link #getResourceGracefulShutdownTimeShare}
+   *   </li>
+   *   <li>{@link #getResourceForcedShutdownTimeout} =
+   *   {@link #getResourceFullShutdownTimeoutMs} -
+   *   {@link #getResourceGracefulShutdownTimeout}
+   *   </li>
+   * </ul>
+   *
+   * @return time share of ResourceFullShutdownTimeout dedicated to graceful shutdown
    */
-  protected Duration getResourceGracefulShutdownTimeout() {
-    // use 9/10 of time full shut down time to graceful shutdown
-    return Duration.ofMillis(getResourceFullShutdownTimeoutMs() / 10 * 9);
+  protected double getResourceGracefulShutdownTimeShare() {
+    return 0.9d;
   }
 
   /**
-   * {@link Duration} allowed for resource to force shut down. If not shut down within this time - error will be logged.
+   * {@link Duration} allowed for resource to shut down gracefully. If not shut down within this time -
+   * {@link #shutdownResourceForced} will be called.
+   *
    * @return {@link Duration}
    */
-  protected Duration getResourceForcedShutdownTimeout() {
-    // use 1/10 of time full shut down time to force shutdown
-    return Duration.ofMillis(getResourceFullShutdownTimeoutMs() / 10);
+  private Duration getResourceGracefulShutdownTimeout() {
+    // This checks incorrect configuration. Timeout error will be logged.
+    if (getStrategyShutdownDelay().toMillis() > getResourceFullShutdownTimeoutMs()) {
+      return Duration.ZERO;
+    }
+
+    // getStrategyShutdownDelay time of getResourceFullShutdownTimeoutMs was already used.
+    // use ResourceGracefulShutdownTimeShare of remaining time for graceful shutdown
+    double gracefulShutdownShare = Math.min(getResourceGracefulShutdownTimeShare(), 1d);
+
+    int resourceGracefulShutdownTimeMS = (int) ((getResourceFullShutdownTimeoutMs() - getStrategyShutdownDelay().toMillis()) * gracefulShutdownShare);
+    return Duration.ofMillis(resourceGracefulShutdownTimeMS);
   }
-
-
-  @Getter(AccessLevel.PROTECTED)
-  private final Scheduler shutdownScheduler = Schedulers.newBoundedElastic(
-      10,
-      100_000,
-      "ShutdownWorker_" + this.getClass().getSimpleName()
-  );
-
-  private final List<T> addedResources = new ArrayList<>();
-
-  private final AtomicBoolean isShutdownAllowed = new AtomicBoolean(false);
 
   /**
    * Default implementation of {@link GracefulShutdownStrategy#prepareForShutdown()}. Will search in {@link ApplicationContext} for Beans of
-   * {@link Class} type provided by {@link BaseReactiveResourceShutdownStrategy#getResourceType()} union them wth externally added resources by
-   * {@link BaseReactiveResourceShutdownStrategy#addResource} and then shut down them all.
+   * {@link Class} type provided by {@link #getResourceType()} union them wth externally added resources by
+   * {@link #addResource} and then shut down them all.
    */
   @Override
   public void prepareForShutdown() {
@@ -136,6 +187,8 @@ public abstract class BaseReactiveResourceShutdownStrategy<T> implements Gracefu
           String resourceDescription = resource.toString();
 
           return this.shutdownResourceGraceful(resource)
+              // Do not emit complete until resource termination
+              .then(waitTermination(getResourceGracefulTerminationStatus(resource)))
               .doOnError((throwable) -> log.warn("Error while graceful shutting down {}", resourceName, throwable))
               .doOnSuccess((e) -> log.info("{} gracefully stopped: {}.", resourceName, resourceDescription))
               .doOnSubscribe(e -> log.info("Shutting down {} gracefully: '{}'.", resourceName, resourceDescription))
@@ -143,6 +196,8 @@ public abstract class BaseReactiveResourceShutdownStrategy<T> implements Gracefu
               // Our flow will try to force shut down in case of error on graceful shutting down any resource
               .onErrorResume(throwable ->
                   shutdownResourceForced(resource)
+                      // Do not emit complete until resource termination
+                      .then(waitTermination(getResourceForcedTerminationStatus(resource)))
                       .doOnSuccess((e) -> log.info("{} force stopped: {}.", resourceName, resourceDescription))
                       .doOnSubscribe(e -> log.info("Shutting down {} forcefully: '{}'.", resourceName, resourceDescription))
                       .timeout(this.getResourceForcedShutdownTimeout()))
@@ -184,6 +239,43 @@ public abstract class BaseReactiveResourceShutdownStrategy<T> implements Gracefu
    */
   protected abstract Mono<Void> shutdownResourceForced(@NonNull T resource);
 
+  /**
+   * This method will be called by {@link #waitTermination} for checking graceful shutdown status.
+   * @param resource Resource to shut down.
+   * @return {@link Mono} with graceful termination check task. Should return true for terminated resource.
+   */
+  protected abstract Mono<Boolean> getResourceGracefulTerminationStatus(T resource);
+
+  /**
+   * This method will be called by {@link #waitTermination} for checking forced shutdown status.
+   * @param resource Resource to shut down.
+   * @return {@link Mono} with forced termination check task. Should return true for terminated resource.
+   */
+  protected abstract Mono<Boolean> getResourceForcedTerminationStatus(T resource);
+
+  /**
+   * Will check for termination status in non-blocking way. No thread will be waiting.
+   *
+   * @param checkTerminationMono {@link Mono} to wait for termination.
+   * @return {@link Mono} that will complete only when {@link #getResourceGracefulTerminationStatus} for graceful shutdown check
+   *         or {@link #getResourceForcedTerminationStatus} for forced shutdown check will return true.
+   */
+  private Mono<Void> waitTermination(Mono<Boolean> checkTerminationMono) {
+    return checkTerminationMono
+        // Use expand as this allows to repeatedly call functions based on previous call result with a breadth-first approach.
+        // Call stack will not be polluted.
+        .expand(isTerminated -> {
+          if (!isTerminated) {
+            return checkTerminationMono
+                .delaySubscription(this.getDelayBetweenTerminationCheck());
+          } else {
+            // Empty Mono signals as exit from expand
+            return Mono.empty();
+          }
+        })
+        // we should submit complete only when resource is terminated
+        .then();
+  }
 
   /**
    * Will shut down gracefully added resources during app shutdown.

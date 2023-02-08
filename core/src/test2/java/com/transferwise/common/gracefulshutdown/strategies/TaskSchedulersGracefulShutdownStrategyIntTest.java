@@ -8,7 +8,6 @@ import com.transferwise.common.gracefulshutdown.GracefulShutdowner;
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.awaitility.Awaitility;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.Status;
@@ -51,11 +50,9 @@ class TaskSchedulersGracefulShutdownStrategyIntTest {
   private ConcurrentTaskScheduler concurrentTaskScheduler;
 
   @Test
-  @Disabled("Disabled: Test will fail. Created to show problem with current implementation.")
   void test_when_task_is_running_longer_than_shutdown_timeout() {
     // GIVEN
     assertThat(gracefulShutdowner.isRunning()).isTrue();
-    AtomicBoolean isTaskCompletes = new AtomicBoolean(false);
     AtomicBoolean isTaskInterrupted = new AtomicBoolean(false);
 
     assertThat(gracefulShutdownStrategiesRegistry.getStrategies().contains(taskSchedulersGracefulShutdownStrategy)).isTrue();
@@ -63,7 +60,6 @@ class TaskSchedulersGracefulShutdownStrategyIntTest {
     concurrentTaskScheduler.execute(() -> {
       try {
         Thread.sleep(Duration.ofSeconds(20).toMillis());
-        isTaskCompletes.set(true);
       } catch (InterruptedException e) {
         isTaskInterrupted.set(true);
       }
@@ -76,6 +72,6 @@ class TaskSchedulersGracefulShutdownStrategyIntTest {
 
     assertThat(healthIndicator.health().getStatus()).isEqualTo(Status.DOWN);
     assertThat(gracefulShutdowner.isRunning()).isFalse();
-    Awaitility.await().atMost(Duration.ofSeconds(5)).until(() -> isTaskCompletes.get() || isTaskInterrupted.get());
+    Awaitility.await().atMost(Duration.ofSeconds(5)).until(isTaskInterrupted::get);
   }
 }

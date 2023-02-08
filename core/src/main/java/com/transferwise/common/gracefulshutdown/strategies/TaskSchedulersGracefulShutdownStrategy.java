@@ -1,62 +1,82 @@
 package com.transferwise.common.gracefulshutdown.strategies;
 
-import com.transferwise.common.gracefulshutdown.GracefulShutdownStrategy;
+import com.transferwise.common.gracefulshutdown.config.GracefulShutdownProperties;
 import com.transferwise.common.gracefulshutdown.utils.ExecutorShutdownUtils;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
+import java.time.Duration;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
-import lombok.RequiredArgsConstructor;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.TaskScheduler;
+import reactor.core.publisher.Mono;
 
 @Slf4j
-@RequiredArgsConstructor
-public class TaskSchedulersGracefulShutdownStrategy implements GracefulShutdownStrategy {
-
-  private final ApplicationContext applicationContext;
-
-  private final List<TaskScheduler> taskSchedulers = new ArrayList<>();
-
-  private final AtomicInteger inProgressShutdowns = new AtomicInteger();
+public class TaskSchedulersGracefulShutdownStrategy extends BaseReactiveResourceShutdownStrategy<TaskScheduler> {
 
   @Override
-  public void prepareForShutdown() {
-    var executors = Executors.newFixedThreadPool(10);
+  protected Duration getStrategyShutdownDelay() {
+    // In case shutdown was called right after call to endpoint:
+    // this will give time for endpoint using ExecutorService to send task if required.
 
-    var taskSchedulerBeans = applicationContext.getBeansOfType(TaskScheduler.class).values();
-    var allTaskSchedulers = new HashSet<>(taskSchedulerBeans);
-    allTaskSchedulers.addAll(taskSchedulers);
-
-    for (var taskSchedulerProto : allTaskSchedulers) {
-      inProgressShutdowns.incrementAndGet();
-      executors.submit(() -> {
-        var taskScheduler = taskSchedulerProto;
-        try {
-          if (taskScheduler instanceof Executor) {
-            ExecutorShutdownUtils.shutdownExecutor((Executor) taskScheduler, false);
-          } else {
-            log.info("Shutting down unknown task scheduler '{}' using it's 'shutdown()' method.", taskScheduler);
-            ExecutorShutdownUtils.shutdownExecutorWithReflection(taskScheduler, true);
-          }
-        } catch (Throwable t) {
-          log.error("Stopping a task scheduler failed.", t);
-        } finally {
-          inProgressShutdowns.decrementAndGet();
-        }
-      });
+    // This is for cases then app is configured incorrectly
+    if (getGracefulShutdownProperties().getClientsReactionTimeMs() > getResourceFullShutdownTimeoutMs()) {
+      return Duration.ofMillis(getResourceFullShutdownTimeoutMs());
     }
+
+    // we give 1/3 of resource shutdown time to allow endpoints called right before client reaction
+    // to proceed and successfully submit tasks
+    return Duration.ofMillis(getGracefulShutdownProperties().getClientsReactionTimeMs() + getResourceFullShutdownTimeoutMs() / 3);
+  }
+
+  public TaskSchedulersGracefulShutdownStrategy(ApplicationContext applicationContext, GracefulShutdownProperties gracefulShutdownProperties) {
+    super(TaskScheduler.class, applicationContext, gracefulShutdownProperties);
   }
 
   @Override
-  public boolean canShutdown() {
-    return inProgressShutdowns.get() == 0;
+  protected Mono<Void> shutdownResourceGraceful(@NonNull TaskScheduler resource) {
+    return Mono.fromRunnable(() -> {
+      if (resource instanceof Executor) {
+        ExecutorShutdownUtils.shutdownExecutor((Executor) resource, false);
+      } else {
+        log.info("Shutting down unknown task scheduler '{}' using it's 'shutdown()' method.", resource);
+        ExecutorShutdownUtils.shutdownExecutorWithReflection(resource, true);
+      }
+    });
   }
 
-  public void addTaskScheduler(TaskScheduler scheduler) {
-    taskSchedulers.add(scheduler);
+  @Override
+  protected Mono<Void> shutdownResourceForced(@NonNull TaskScheduler resource) {
+    return Mono.fromRunnable(() -> {
+      if (resource instanceof Executor) {
+        ExecutorShutdownUtils.shutdownExecutorForced((Executor) resource);
+      } else {
+        log.warn("Unknown TaskScheduler to force shutdown: {}. Skipping.", resource.getClass());
+      }
+    });
+  }
+
+  @Override
+  protected Mono<Boolean> getResourceGracefulTerminationStatus(TaskScheduler resource) {
+    return Mono.fromCallable(() -> {
+      if (resource instanceof Executor) {
+        return ExecutorShutdownUtils.isTerminated((Executor) resource);
+      } else {
+        log.warn("Unknown TaskScheduler to check termination: {}. Return true.", resource.getClass());
+        return true;
+      }
+    });
+  }
+
+  @Override
+  protected Mono<Boolean> getResourceForcedTerminationStatus(TaskScheduler resource) {
+    return getResourceGracefulTerminationStatus(resource);
+  }
+
+  /**
+   * Will shut down gracefully added resources during app shutdown.
+   * @param taskScheduler TaskScheduler to shut down gracefully.
+   */
+  public void addTaskScheduler(TaskScheduler taskScheduler) {
+    addResource(taskScheduler);
   }
 }

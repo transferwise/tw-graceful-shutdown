@@ -36,7 +36,7 @@ class PlainGracefulShutdownerIntTest {
     gracefulShutdowner.stop();
     long stopEndTimeMs = System.currentTimeMillis();
 
-    assertThat(stopEndTimeMs - stopStartTimeMs).as("No strategy is blocking").isLessThan(5_000);
+    assertThat(stopEndTimeMs - stopStartTimeMs).as("No strategy is blocking").isLessThan(6_000);
 
     assertThat(gracefulShutdowner.isRunning()).isFalse();
     assertThat(healthIndicator.health().getStatus()).isEqualTo(Status.DOWN);
