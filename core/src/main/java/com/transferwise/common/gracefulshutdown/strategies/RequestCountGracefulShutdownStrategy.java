@@ -18,9 +18,9 @@ public class RequestCountGracefulShutdownStrategy extends OncePerRequestFilter i
   private static final int SERVICE_UNAVAILABLE = 503;
   protected static final AtomicLong requestCount = new AtomicLong();
 
-  private boolean stopAcceptingRequests = false;
+  private volatile boolean stopAcceptingRequests = false;
 
-  private boolean stopCounting;
+  private volatile boolean stopCounting;
 
   @Autowired
   private RequestCountStrategyProperties requestCountStrategyProperties;

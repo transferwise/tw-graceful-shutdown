@@ -13,4 +13,6 @@ public class GracefulShutdownProperties {
   private int clientsReactionTimeMs = 30_000;
 
   private int strategiesCheckIntervalTimeMs = 5_000;
+
+  private int resourceCheckIntervalTimeMs = 250;
 }

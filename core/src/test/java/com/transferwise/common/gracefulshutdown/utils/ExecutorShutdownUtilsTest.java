@@ -82,6 +82,36 @@ class ExecutorShutdownUtilsTest {
   }
 
   @Test
+  @SneakyThrows
+  void force_shutdown_for_ThreadPoolTaskScheduler_interrupts() {
+    // GIVEN
+    AtomicBoolean isInterrupted = new AtomicBoolean(false);
+    ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
+    threadPoolTaskScheduler.initialize();
+    ScheduledThreadPoolExecutor internalExecutor = (ScheduledThreadPoolExecutor) threadPoolTaskScheduler.getScheduledExecutor();
+
+    threadPoolTaskScheduler.execute(() -> {
+      try {
+        Thread.sleep(submittedTaskRunTime.toMillis());
+      } catch (InterruptedException e) {
+        isInterrupted.set(true);
+        Thread.currentThread().interrupt();
+      }
+    });
+
+    // wait till task is started before requesting shutdown
+    Awaitility.await().atMost(checkMaxWaitTime).until(() -> internalExecutor.getActiveCount() == 1);
+
+    // WHEN
+    ExecutorShutdownUtils.shutdownExecutorForced(threadPoolTaskScheduler);
+
+    // THEN
+    Awaitility.await().atMost(checkMaxWaitTime).until(isInterrupted::get);
+    Awaitility.await().atMost(checkMaxWaitTime).until(internalExecutor::isTerminated);
+    Awaitility.await().atMost(checkMaxWaitTime).until(() -> ExecutorShutdownUtils.isTerminated(internalExecutor));
+  }
+
+  @Test
   void waits_till_task_is_completed_for_ConcurrentTaskScheduler() {
     // GIVEN
     AtomicBoolean isCompleted = new AtomicBoolean(false);
@@ -112,6 +142,38 @@ class ExecutorShutdownUtilsTest {
   }
 
   @Test
+  @SneakyThrows
+  void force_shutdown_for_ConcurrentTaskScheduler_interrupts() {
+    // GIVEN
+    AtomicBoolean isInterrupted = new AtomicBoolean(false);
+    ConcurrentTaskScheduler concurrentTaskScheduler = new ConcurrentTaskScheduler();
+
+    concurrentTaskScheduler.execute(() -> {
+      try {
+        Thread.sleep(submittedTaskRunTime.toMillis());
+      } catch (InterruptedException e) {
+        isInterrupted.set(true);
+        Thread.currentThread().interrupt();
+      }
+    });
+
+    // WHEN
+    ExecutorShutdownUtils.shutdownExecutorForced(concurrentTaskScheduler);
+
+    // THEN
+    Awaitility.await().atMost(checkMaxWaitTime).until(isInterrupted::get);
+    Awaitility.await().atMost(checkMaxWaitTime).until(() -> {
+      Executor executor = concurrentTaskScheduler.getConcurrentExecutor();
+      if (executor instanceof ExecutorService) {
+        return ((ExecutorService) executor).isTerminated();
+      } else {
+        return true;
+      }
+    });
+    Awaitility.await().atMost(checkMaxWaitTime).until(() -> ExecutorShutdownUtils.isTerminated(concurrentTaskScheduler));
+  }
+
+  @Test
   void waits_till_task_is_completed_for_ScheduledThreadPoolExecutor() {
     // GIVEN
     AtomicBoolean isCompleted = new AtomicBoolean(false);
@@ -137,6 +199,33 @@ class ExecutorShutdownUtilsTest {
   }
 
   @Test
+  @SneakyThrows
+  void force_shutdown_for_ScheduledThreadPoolExecutor_interrupts() {
+    // GIVEN
+    AtomicBoolean isInterrupted = new AtomicBoolean(false);
+    ScheduledThreadPoolExecutor scheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(1);
+
+    scheduledThreadPoolExecutor.execute(() -> {
+      try {
+        Thread.sleep(submittedTaskRunTime.toMillis());
+      } catch (InterruptedException e) {
+        isInterrupted.set(true);
+        Thread.currentThread().interrupt();
+      }
+    });
+
+    Awaitility.await().atMost(checkMaxWaitTime).until(() -> scheduledThreadPoolExecutor.getActiveCount() == 1);
+
+    // WHEN
+    ExecutorShutdownUtils.shutdownExecutorForced(scheduledThreadPoolExecutor);
+
+    // THEN
+    Awaitility.await().atMost(checkMaxWaitTime).until(isInterrupted::get);
+    Awaitility.await().atMost(checkMaxWaitTime).until(scheduledThreadPoolExecutor::isTerminated);
+    Awaitility.await().atMost(checkMaxWaitTime).until(() -> ExecutorShutdownUtils.isTerminated(scheduledThreadPoolExecutor));
+  }
+
+  @Test
   void waits_till_task_is_completed_for_ExecutorService() {
     // GIVEN
     AtomicBoolean isCompleted = new AtomicBoolean(false);
@@ -157,5 +246,30 @@ class ExecutorShutdownUtilsTest {
     // THEN
     Awaitility.await().atMost(checkMaxWaitTime).until(isCompleted::get);
     Awaitility.await().atMost(checkMaxWaitTime).until(executorService::isTerminated);
+  }
+
+  @Test
+  @SneakyThrows
+  void force_shutdown_for_ExecutorService_interrupts() {
+    // GIVEN
+    AtomicBoolean isInterrupted = new AtomicBoolean(false);
+    ExecutorService executorService = Executors.newFixedThreadPool(1);
+
+    executorService.execute(() -> {
+      try {
+        Thread.sleep(submittedTaskRunTime.toMillis());
+      } catch (InterruptedException e) {
+        isInterrupted.set(true);
+        Thread.currentThread().interrupt();
+      }
+    });
+
+    // WHEN
+    ExecutorShutdownUtils.shutdownExecutorForced(executorService);
+
+    // THEN
+    Awaitility.await().atMost(checkMaxWaitTime).until(isInterrupted::get);
+    Awaitility.await().atMost(checkMaxWaitTime).until(executorService::isTerminated);
+    Awaitility.await().atMost(checkMaxWaitTime).until(() -> ExecutorShutdownUtils.isTerminated(executorService));
   }
 }

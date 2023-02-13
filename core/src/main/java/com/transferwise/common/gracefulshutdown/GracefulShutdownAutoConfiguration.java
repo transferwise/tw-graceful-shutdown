@@ -88,8 +88,10 @@ public class GracefulShutdownAutoConfiguration {
   protected static class SpringTaskSchedulerConfiguration {
 
     @Bean
-    public TaskSchedulersGracefulShutdownStrategy taskSchedulersGracefulShutdownStrategy(@Autowired ApplicationContext applicationContext) {
-      return new TaskSchedulersGracefulShutdownStrategy(applicationContext);
+    public TaskSchedulersGracefulShutdownStrategy taskSchedulersGracefulShutdownStrategy(
+        @Autowired ApplicationContext applicationContext,
+        @Autowired GracefulShutdownProperties gracefulShutdownProperties) {
+      return new TaskSchedulersGracefulShutdownStrategy(applicationContext, gracefulShutdownProperties);
     }
   }
 
@@ -101,14 +103,16 @@ public class GracefulShutdownAutoConfiguration {
   protected static class SpringTaskSchedulerAlternativeConfiguration {
 
     @Bean
-    public TaskSchedulersGracefulShutdownStrategy taskSchedulersGracefulShutdownStrategy(@Autowired ApplicationContext applicationContext) {
-      return new TaskSchedulersGracefulShutdownStrategy(applicationContext);
+    public TaskSchedulersGracefulShutdownStrategy taskSchedulersGracefulShutdownStrategy(
+        @Autowired ApplicationContext applicationContext,
+        @Autowired GracefulShutdownProperties gracefulShutdownProperties) {
+      return new TaskSchedulersGracefulShutdownStrategy(applicationContext, gracefulShutdownProperties);
     }
 
     @Bean
     @Order
     public SchedulingConfigurer twGsSchedulingConfigurer(TaskSchedulersGracefulShutdownStrategy taskSchedulersGracefulShutdownStrategy) {
-      return taskRegistrar -> taskSchedulersGracefulShutdownStrategy.addTaskScheduler(taskRegistrar.getScheduler());
+      return taskRegistrar -> taskSchedulersGracefulShutdownStrategy.addResource(taskRegistrar.getScheduler());
     }
   }
 
@@ -117,10 +121,11 @@ public class GracefulShutdownAutoConfiguration {
   @ConditionalOnProperty(value = "tw-graceful-shutdown.executor-service.enabled", matchIfMissing = true)
   @ConditionalOnBean(java.util.concurrent.ExecutorService.class)
   protected static class ExecutorServiceGracefulShutdownStrategyConfiguration {
+
     @Bean
     public ExecutorServiceGracefulShutdownStrategy executorServiceGracefulShutdownStrategy(
-            @Autowired ApplicationContext applicationContext,
-            @Autowired GracefulShutdownProperties gracefulShutdownProperties
+        @Autowired ApplicationContext applicationContext,
+        @Autowired GracefulShutdownProperties gracefulShutdownProperties
     ) {
       return new ExecutorServiceGracefulShutdownStrategy(applicationContext, gracefulShutdownProperties);
     }
