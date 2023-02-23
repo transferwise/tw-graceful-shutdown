@@ -1,0 +1,8 @@
+site_name: tw-graceful-shutdown Documentation
+repo_url: https://github.com/transferwise/tw-graceful-shutdown
+edit_uri: blob/master/docs/
+nav:
+  - Overview: index.md
+  - Integrating with the Library: integration.md
+  - Configuration: configuration.md
+  - Contributing: contributing.md
