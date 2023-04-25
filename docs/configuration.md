@@ -22,43 +22,43 @@ tw-graceful-shutdown:
 ```yaml
 tw-graceful-shutdown:
   health-indicator:
-    enabled: [true|default:false]
+    enabled: [true|false] # default is true
 ```
-If set to `true`, creates `GracefulShutdownHealthStrategy` and `GracefulShutdownHealthIndicator` beans conditionally on the presence of the `org.springframework.boot.actuate.health.AbstractHealthIndicator` class.
+When set to `true` or left unset, it creates `GracefulShutdownHealthStrategy` and `GracefulShutdownHealthIndicator` beans conditionally on the presence of the `org.springframework.boot.actuate.health.AbstractHealthIndicator` class.
 
 ### Kagkarlsson DB Scheduler
 ```yaml
 tw-graceful-shutdown:
   kagkarlsson-db-scheduler:
-    enabled: [true|default:false]
+    enabled: [true|false] # default is true
 ```
-If set to `true`, creates the `KagkarlssonDbScheduledTaskShutdownStrategy` bean conditionally on the presence of the `com.github.kagkarlsson.scheduler.Scheduler` class and bean. Used to gracefully shutdown tasks that are being executed by the scheduler.
+When set to `true` or left unset, it creates the `KagkarlssonDbScheduledTaskShutdownStrategy` bean conditionally on the presence of the `com.github.kagkarlsson.scheduler.Scheduler` class and bean. Used to gracefully shutdown tasks that are being executed by the scheduler.
 
 ### Spring Task Scheduler
 ```yaml
 tw-graceful-shutdown:
   spring-task-scheduler:
-    enabled: [true|default:false]
+    enabled: [true|false] # default is true
 ```
 
-If set to `true`, creates the `TaskSchedulersGracefulShutdownStrategy` bean conditionally on the presence of the `org.springframework.scheduling.TaskScheduler` bean or if that bean is missing then it checks for the presence of the `org.springframework.scheduling.annotation.SchedulerAnnotationBeanPostProcessor` and `org.springframework.scheduling.annotation.SchedulingConfigurer` beans.
+When set to `true` or left unset, it creates the `TaskSchedulersGracefulShutdownStrategy` bean conditionally on the presence of the `org.springframework.scheduling.TaskScheduler` bean or if that bean is missing then it checks for the presence of the `org.springframework.scheduling.annotation.SchedulerAnnotationBeanPostProcessor` and `org.springframework.scheduling.annotation.SchedulingConfigurer` beans.
 
 ### Executor Service
 ```yaml
 tw-graceful-shutdown:
   executor-service:
-    enabled: [true|default:false]
+    enabled: [true|false] # default is true
 ```
 
-If set to `true`, creates the `ExecutorServiceGracefulShutdownStrategy` bean conditionally on the presence of the `java.util.concurrent.ExecutorService` class.
+When set to `true` or left unset, it creates the `ExecutorServiceGracefulShutdownStrategy` bean conditionally on the presence of the `java.util.concurrent.ExecutorService` class.
 
 ### Request Count Strategy
 ```yaml
 tw-graceful-shutdown:
   request-count-strategy:
-    enabled: [true|default:false]
+    enabled: [true|false] # default is true
 ```
 
-If set to `true`, creates the `FilterRegistrationBean<RequestCountGracefulShutdownStrategy` and `RequestCountGracefulShutdownStrategy` beans.
+When set to `true` or left unset, it creates the `FilterRegistrationBean<RequestCountGracefulShutdownStrategy>` and `RequestCountGracefulShutdownStrategy` beans.
 
 > All the aforementioned strategy implementations can be found [here](https://github.com/transferwise/tw-graceful-shutdown/tree/master/core/src/main/java/com/transferwise/common/gracefulshutdown/strategies).
