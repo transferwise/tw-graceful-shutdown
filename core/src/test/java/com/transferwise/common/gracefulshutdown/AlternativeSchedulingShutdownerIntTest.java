@@ -4,15 +4,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
 import com.transferwise.common.gracefulshutdown.strategies.TaskSchedulersGracefulShutdownStrategy;
+import com.transferwise.common.gracefulshutdown.test.BaseTestEnvironment;
 import com.transferwise.common.gracefulshutdown.test.TestApplication;
 import com.transferwise.common.gracefulshutdown.test.TestBApplication;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 
-@ActiveProfiles({"test"})
+@BaseTestEnvironment
 @SpringBootTest(classes = {TestBApplication.class})
 class AlternativeSchedulingShutdownerIntTest {
 

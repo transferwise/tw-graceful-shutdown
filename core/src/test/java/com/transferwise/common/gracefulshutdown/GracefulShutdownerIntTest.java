@@ -5,19 +5,20 @@ import static org.awaitility.Awaitility.await;
 
 import com.transferwise.common.gracefulshutdown.strategies.GracefulShutdownHealthStrategy;
 import com.transferwise.common.gracefulshutdown.strategies.KagkarlssonDbScheduledTaskShutdownStrategy;
-import com.transferwise.common.gracefulshutdown.strategies.RequestCountGracefulShutdownStrategy;
 import com.transferwise.common.gracefulshutdown.strategies.TaskSchedulersGracefulShutdownStrategy;
+import com.transferwise.common.gracefulshutdown.strategies.servletrequestcount.BaseRequestCountGracefulShutdownStrategy;
+import com.transferwise.common.gracefulshutdown.test.BaseTestEnvironment;
 import com.transferwise.common.gracefulshutdown.test.TestApplication;
 import java.time.Duration;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.Status;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
-@ActiveProfiles({"test"})
-@SpringBootTest(classes = {TestApplication.class})
+@BaseTestEnvironment
+// Force a separate ApplicationContext, because we will close this one.
+@ActiveProfiles({"test", "shutdown1"})
 class GracefulShutdownerIntTest {
 
   @Autowired
@@ -27,7 +28,7 @@ class GracefulShutdownerIntTest {
   @Autowired
   private GracefulShutdownHealthStrategy healthStrategy;
   @Autowired
-  private RequestCountGracefulShutdownStrategy requestCountGracefulShutdownStrategy;
+  private BaseRequestCountGracefulShutdownStrategy requestCountGracefulShutdownStrategy;
   @Autowired
   private GracefulShutdownStrategiesRegistry gracefulShutdownStrategiesRegistry;
   @Autowired

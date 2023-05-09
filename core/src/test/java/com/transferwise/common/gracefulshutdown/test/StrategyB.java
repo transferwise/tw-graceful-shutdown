@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Priority(1)
+@jakarta.annotation.Priority(1)
 public class StrategyB extends BaseOrderStrategy {
 
 }

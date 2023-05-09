@@ -16,8 +16,8 @@ sourceSets {
 }
 
 configurations {
-    test2Implementation.extendsFrom implementation,local
-    test2Runtime.extendsFrom runtime,local
+    test2Implementation.extendsFrom implementation, local
+    test2Runtime.extendsFrom runtime, local
 }
 
 task test2(type: Test) {
@@ -38,10 +38,11 @@ check.dependsOn test2
 dependencies {
     api project(':tw-graceful-shutdown-interfaces')
 
+    annotationProcessor libraries.springBootConfigurationProcessor
+
     implementation libraries.twBaseUtils
     implementation libraries.springBootStarter
     implementation libraries.springBootActuator
-    annotationProcessor libraries.springBootConfigurationProcessor
     implementation libraries.springWeb
     implementation libraries.reactorCore
     implementation libraries.guava
@@ -49,9 +50,19 @@ dependencies {
     compileOnly libraries.dbSchedulerSpringBootStarter
     compileOnly libraries.springContext
     compileOnly libraries.javaxServletApi
+    compileOnly libraries.jakartaServletApi
     compileOnly libraries.slf4jApi
 
-    testImplementation libraries.javaxServletApi
+    // Somehow needed to avoid compiler noise.
+    compileOnly libraries.jacksonAnnotations
+
+    testCompileOnly libraries.jakartaServletApi
+    testCompileOnly libraries.javaxServletApi
+    testCompileOnly libraries.jakartaAnnotationApi
+    testCompileOnly libraries.javaxAnnotationApi
+
+    testImplementation libraries.springBootStarterWeb
+    testImplementation libraries.springBootStarterWebFlux
     testImplementation libraries.springBootStarterTest
     testImplementation libraries.awaitility
 
@@ -61,6 +72,9 @@ dependencies {
     testRuntimeOnly "org.flywaydb:flyway-core"
 
     testCompileOnly libraries.spotbugsAnnotations
+
+    // Somehow needed to avoid compiler noise.
+    test2CompileOnly libraries.jacksonAnnotations
 
     test2Implementation libraries.springBootStarterTest
     test2Implementation libraries.awaitility

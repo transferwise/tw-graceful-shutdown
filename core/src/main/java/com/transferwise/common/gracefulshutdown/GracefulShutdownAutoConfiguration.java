@@ -5,8 +5,9 @@ import com.transferwise.common.gracefulshutdown.config.RequestCountStrategyPrope
 import com.transferwise.common.gracefulshutdown.strategies.ExecutorServiceGracefulShutdownStrategy;
 import com.transferwise.common.gracefulshutdown.strategies.GracefulShutdownHealthStrategy;
 import com.transferwise.common.gracefulshutdown.strategies.KagkarlssonDbScheduledTaskShutdownStrategy;
-import com.transferwise.common.gracefulshutdown.strategies.RequestCountGracefulShutdownStrategy;
 import com.transferwise.common.gracefulshutdown.strategies.TaskSchedulersGracefulShutdownStrategy;
+import com.transferwise.common.gracefulshutdown.strategies.servletrequestcount.LegacyRequestCountGracefulShutdownStrategy;
+import com.transferwise.common.gracefulshutdown.strategies.servletrequestcount.RequestCountGracefulShutdownStrategy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
@@ -46,20 +47,52 @@ public class GracefulShutdownAutoConfiguration {
     }
   }
 
+  // To be removed after we drop support for Spring Boot 2
   @Configuration
   @RequiredArgsConstructor
   @EnableConfigurationProperties({RequestCountStrategyProperties.class})
   @ConditionalOnClass(name = "javax.servlet.Filter")
+  protected static class LegacyServletConfiguration {
+
+    private final RequestCountStrategyProperties requestCountStrategyProperties;
+
+    @Bean
+    @ConditionalOnProperty(value = "tw-graceful-shutdown.request-count-strategy.enabled", matchIfMissing = true)
+    public FilterRegistrationBean legacyRequestCountGracefulShutdownStrategyFilter(
+        LegacyRequestCountGracefulShutdownStrategy requestCountGracefulShutdownStrategy) throws Exception {
+      var registrationBean = new FilterRegistrationBean();
+
+      var m = registrationBean.getClass().getMethod("setFilter", Class.forName("javax.servlet.Filter"));
+      m.invoke(registrationBean, requestCountGracefulShutdownStrategy);
+      registrationBean.setOrder(requestCountStrategyProperties.getFilterOrder());
+      return registrationBean;
+    }
+
+    @Bean
+    @ConditionalOnProperty(value = "tw-graceful-shutdown.request-count-strategy.enabled", matchIfMissing = true)
+    public LegacyRequestCountGracefulShutdownStrategy legacyRequestCountGracefulShutdownStrategy() {
+      return new LegacyRequestCountGracefulShutdownStrategy();
+    }
+  }
+
+  @Configuration
+  @RequiredArgsConstructor
+  @EnableConfigurationProperties({RequestCountStrategyProperties.class})
+  @ConditionalOnClass(name = "jakarta.servlet.Filter")
   protected static class ServletConfiguration {
 
     private final RequestCountStrategyProperties requestCountStrategyProperties;
 
     @Bean
     @ConditionalOnProperty(value = "tw-graceful-shutdown.request-count-strategy.enabled", matchIfMissing = true)
-    public FilterRegistrationBean<RequestCountGracefulShutdownStrategy> requestCountGracefulShutdownStrategyFilter() {
-      FilterRegistrationBean<RequestCountGracefulShutdownStrategy> registrationBean = new FilterRegistrationBean<>();
-      registrationBean.setFilter(requestCountGracefulShutdownStrategy());
+    public FilterRegistrationBean requestCountGracefulShutdownStrategyFilter(
+        RequestCountGracefulShutdownStrategy requestCountGracefulShutdownStrategy) throws Exception {
+      var registrationBean = new FilterRegistrationBean();
+
+      var m = registrationBean.getClass().getMethod("setFilter", Class.forName("jakarta.servlet.Filter"));
+      m.invoke(registrationBean, requestCountGracefulShutdownStrategy);
       registrationBean.setOrder(requestCountStrategyProperties.getFilterOrder());
+
       return registrationBean;
     }
 

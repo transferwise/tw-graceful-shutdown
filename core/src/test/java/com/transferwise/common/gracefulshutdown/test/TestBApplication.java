@@ -10,7 +10,7 @@ import org.springframework.scheduling.annotation.SchedulingConfigurer;
 @SpringBootApplication
 @EnableScheduling
 public class TestBApplication {
-  
+
   @Bean
   public SchedulingConfigurer mySchedulingConfigurer() {
     return taskRegistrar -> taskRegistrar.setScheduler(Executors.newScheduledThreadPool(2));

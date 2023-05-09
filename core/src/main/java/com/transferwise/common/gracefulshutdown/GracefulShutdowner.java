@@ -7,8 +7,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
-import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -22,7 +22,7 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 
 @Slf4j
-public class GracefulShutdowner implements ApplicationListener<ApplicationReadyEvent>, SmartLifecycle {
+public class GracefulShutdowner implements ApplicationListener<ApplicationReadyEvent>, SmartLifecycle, InitializingBean {
 
   @Autowired
   private GracefulShutdownProperties properties;
@@ -39,8 +39,8 @@ public class GracefulShutdowner implements ApplicationListener<ApplicationReadyE
   private boolean started;
   private final AtomicBoolean isShuttingDown = new AtomicBoolean(false);
 
-  @PostConstruct
-  public void init() {
+  @Override
+  public void afterPropertiesSet() {
     log.info("Initialized graceful shutdown with timeout {} ms. Client reaction timeout will be {} ms.",
         properties.getShutdownTimeoutMs(), properties.getClientsReactionTimeMs());
     if (defaultLifecycleProcessor != null) {
@@ -79,6 +79,14 @@ public class GracefulShutdowner implements ApplicationListener<ApplicationReadyE
 
         log.info("Waiting for " + properties.getClientsReactionTimeMs() + " ms for clients to understand this node should not be called anymore.");
         Thread.sleep(properties.getClientsReactionTimeMs());
+
+        strategies.forEach((s) -> {
+          try {
+            s.clientReactionTimePassed();
+          } catch (Throwable t) {
+            log.error(t.getMessage(), t);
+          }
+        });
 
         long start = System.currentTimeMillis();
         List<GracefulShutdownStrategy> redLightStrategies = new ArrayList<>(strategies);

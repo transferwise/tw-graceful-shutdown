@@ -32,4 +32,11 @@ public interface GracefulShutdownStrategy {
    */
   default void applicationTerminating() {
   }
+
+  /**
+   * Called right after client reaction time has passed from the start of the shutdown.
+   */
+  default void clientReactionTimePassed() {
+  }
+
 }
