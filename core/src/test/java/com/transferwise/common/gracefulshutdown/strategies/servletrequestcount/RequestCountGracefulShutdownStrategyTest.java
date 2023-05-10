@@ -6,10 +6,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIf;
 
 
-@EnabledIf("hasJavaxServletApi")
+@EnabledIf("hasJakartaServletApi")
 class RequestCountGracefulShutdownStrategyTest {
 
-  protected static boolean hasJavaxServletApi() {
+  protected static boolean hasJakartaServletApi() {
     try {
       Class.forName("jakarta.servlet.FilterChain");
       return true;
