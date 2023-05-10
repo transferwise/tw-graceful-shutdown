@@ -27,5 +27,4 @@ class RequestCountGracefulShutdownStrategyTest {
     strategy.currentRequestsCount.decrementAndGet();
     assertThat(strategy.canShutdown()).isTrue();
   }
-
 }
