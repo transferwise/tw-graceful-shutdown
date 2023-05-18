@@ -12,3 +12,9 @@ tw-graceful-shutdown:
   shutdownTimeoutMs: 15000
   clientsReactionTimeMs: 1
   strategiesCheckIntervalTimeMs: 500
+
+  health-indicator.enabled: true
+  request-count-strategy.enabled: true
+  kagkarlsson-db-scheduler.enabled: true
+  spring-task-scheduler.enabled: true
+  executor-service.enabled: true
