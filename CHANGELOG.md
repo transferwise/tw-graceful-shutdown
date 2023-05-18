@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.11.1] - 2023-05-18
+
+### Fixed
+* Fix for `UnboundConfigurationPropertiesException` when one of the autocofiguration conditional flag properties were set explicitly.
+e.g. `health-indicator.enabled: true` or `request-count-strategy.enabled: true`
+
 ## [2.11.0] - 2023-05-04
 
 ### Added
