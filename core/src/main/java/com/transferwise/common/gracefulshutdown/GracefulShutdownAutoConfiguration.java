@@ -151,7 +151,7 @@ public class GracefulShutdownAutoConfiguration {
 
   @Configuration
   @ConditionalOnClass(name = "java.util.concurrent.ExecutorService")
-  @ConditionalOnProperty(value = "tw-graceful-shutdown.executor-service.enabled", matchIfMissing = true)
+  @ConditionalOnProperty(value = "tw-graceful-shutdown.executor-service.enabled", matchIfMissing = false)
   @ConditionalOnBean(java.util.concurrent.ExecutorService.class)
   protected static class ExecutorServiceGracefulShutdownStrategyConfiguration {
 
