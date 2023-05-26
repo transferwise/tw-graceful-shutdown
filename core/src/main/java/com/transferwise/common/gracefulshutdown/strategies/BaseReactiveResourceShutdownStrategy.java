@@ -1,14 +1,15 @@
 package com.transferwise.common.gracefulshutdown.strategies;
 
+import com.transferwise.common.gracefulshutdown.GracefulShutdownIgnore;
 import com.transferwise.common.gracefulshutdown.GracefulShutdownStrategy;
 import com.transferwise.common.gracefulshutdown.config.GracefulShutdownProperties;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
@@ -160,6 +161,26 @@ public abstract class BaseReactiveResourceShutdownStrategy<T> implements Gracefu
   }
 
   /**
+   * Prepare {@link Set} of resources for shutdown by extracting Beans of {@link #getResourceType()} from application context
+   * and add manually added resources by {@link #addResource}.
+   * @return {@link Set} of resources for shutdown
+   */
+  public Set<T> getResourcesForShutdown() {
+    Set<Object> ignoredBeans = applicationContext.getBeansWithAnnotation(GracefulShutdownIgnore.class)
+        .values().stream()
+        .collect(Collectors.toUnmodifiableSet());
+
+    Set<T> allResources = applicationContext.getBeansOfType(getResourceType())
+        .values().stream()
+        .filter(e -> !ignoredBeans.contains(e))
+        .collect(Collectors.toSet());
+
+    allResources.addAll(addedResources);
+
+    return allResources;
+  }
+
+  /**
    * Default implementation of {@link GracefulShutdownStrategy#prepareForShutdown()}. Will search in {@link ApplicationContext} for Beans of
    * {@link Class} type provided by {@link #getResourceType()} union them wth externally added resources by
    * {@link #addResource} and then shut down them all.
@@ -167,9 +188,7 @@ public abstract class BaseReactiveResourceShutdownStrategy<T> implements Gracefu
   @Override
   public void prepareForShutdown() {
 
-    Collection<T> resourceBeans = applicationContext.getBeansOfType(getResourceType()).values();
-    Set<T> allResources = new HashSet<>(resourceBeans);
-    allResources.addAll(addedResources);
+    Set<T> allResources = getResourcesForShutdown();
 
     shutdownResources(allResources)
         .delaySubscription(getStrategyShutdownDelay(), getShutdownScheduler())

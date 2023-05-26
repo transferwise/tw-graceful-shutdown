@@ -3,13 +3,16 @@ package com.transferwise.common.gracefulshutdown.strategies;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.transferwise.common.gracefulshutdown.GracefulShutdownHealthIndicator;
+import com.transferwise.common.gracefulshutdown.GracefulShutdownIgnore;
 import com.transferwise.common.gracefulshutdown.GracefulShutdownStrategiesRegistry;
 import com.transferwise.common.gracefulshutdown.GracefulShutdowner;
 import java.time.Duration;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.awaitility.Awaitility;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.Status;
@@ -17,6 +20,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -31,8 +35,15 @@ class ExecutorServiceGracefulShutdownStrategyIntTest {
     @Configuration
     public static class ExecutorsConfig {
 
+      @Primary
       @Bean
       ExecutorService getTestExecutorService() {
+        return Executors.newFixedThreadPool(1);
+      }
+
+      @Bean
+      @GracefulShutdownIgnore
+      ExecutorService getIgnoredTestExecutorService() {
         return Executors.newFixedThreadPool(1);
       }
     }
@@ -78,5 +89,17 @@ class ExecutorServiceGracefulShutdownStrategyIntTest {
     Awaitility.await().atMost(Duration.ofSeconds(2)).until(testExecutorService::isTerminated);
     assertThat(isTaskCompleted.get()).isEqualTo(false);
     assertThat(isTaskInterrupted.get()).isEqualTo(true);
+  }
+
+  @Test
+  void test_when_bean_annotated_with_GracefulShutdownIgnore_then_it_is_ignored_by_graceful_shutdown() {
+    // GIVEN
+
+    // WHEN
+    Set<ExecutorService> resourcesToShutdown = executorServiceGracefulShutdownStrategy.getResourcesForShutdown();
+
+    // THEN
+    Assertions.assertEquals(1, resourcesToShutdown.size());
+
   }
 }
