@@ -1,56 +1,57 @@
 package com.transferwise.common.gracefulshutdown;
 
-import com.transferwise.common.baseutils.ExceptionUtils;
 import com.transferwise.common.gracefulshutdown.config.GracefulShutdownProperties;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationListener;
 import org.springframework.context.SmartLifecycle;
-import org.springframework.context.event.ContextClosedEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.context.support.DefaultLifecycleProcessor;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
 
 @Slf4j
-public class GracefulShutdowner implements ApplicationListener<ApplicationReadyEvent>, SmartLifecycle, InitializingBean {
+public class GracefulShutdowner implements SmartLifecycle, InitializingBean {
 
   @Autowired
   private GracefulShutdownProperties properties;
 
   @Autowired
-  private ApplicationContext applicationContext;
-
-  @Autowired
   private GracefulShutdownStrategiesRegistry gracefulShutdownStrategiesRegistry;
 
-  @Autowired(required = false)
+  @Autowired
   private DefaultLifecycleProcessor defaultLifecycleProcessor;
 
-  private boolean started;
-  private final AtomicBoolean isShuttingDown = new AtomicBoolean(false);
+  private volatile boolean running;
 
   @Override
   public void afterPropertiesSet() {
-    log.info("Initialized graceful shutdown with timeout {} ms. Client reaction timeout will be {} ms.",
-        properties.getShutdownTimeoutMs(), properties.getClientsReactionTimeMs());
-    if (defaultLifecycleProcessor != null) {
-      defaultLifecycleProcessor.setTimeoutPerShutdownPhase(2L * (properties.getClientsReactionTimeMs() + properties.getShutdownTimeoutMs()));
-    }
+    log.info("Initialized graceful shutdown with timeout {} ms, client reaction timeout {} ms"
+            + " and strategies '{}'.",
+        properties.getShutdownTimeoutMs(),
+        properties.getClientsReactionTimeMs(),
+        gracefulShutdownStrategiesRegistry.getStrategies());
+
+    defaultLifecycleProcessor.setTimeoutPerShutdownPhase(
+        2L * (properties.getClientsReactionTimeMs() + properties.getShutdownTimeoutMs()));
   }
 
   @Override
   public void start() {
-    started = true;
+    running = true;
+    
+    log.info("Notifying all strategies that the application has started.");
+
+    var strategies = gracefulShutdownStrategiesRegistry.getStrategies();
+    for (var strategy : strategies) {
+      try {
+        strategy.applicationStarted();
+        log.debug("'applicationStarted' hook called for strategy '{}'", strategy);
+      } catch (Exception e) {
+        throw new IllegalStateException("'applicationStarted' hook failed for strategy '" + strategy + "'.", e);
+      }
+    }
   }
 
   @Override
@@ -61,76 +62,81 @@ public class GracefulShutdowner implements ApplicationListener<ApplicationReadyE
 
   @Override
   public void stop() {
-    if (isShuttingDown.compareAndSet(false, true)) { // Avoid executing stop() twice if both SmartLifecycle and EventListener gets triggered
+    this.running = false;
 
-      ExceptionUtils.doUnchecked(() -> {
-        log.info("Graceful shutdown initiated.");
+    long startTimeMs = System.currentTimeMillis();
+    try {
+      log.info("Graceful shutdown initiated.");
 
-        List<GracefulShutdownStrategy> strategies = new ArrayList<>(gracefulShutdownStrategiesRegistry.getStrategies());
-        Collections.reverse(strategies);
+      var strategies = new ArrayList<>(gracefulShutdownStrategiesRegistry.getStrategies());
+      Collections.reverse(strategies);
 
-        strategies.forEach((s) -> {
-          try {
-            s.prepareForShutdown();
-          } catch (Throwable t) {
-            log.error(t.getMessage(), t);
-          }
-        });
-
-        log.info("Waiting for " + properties.getClientsReactionTimeMs() + " ms for clients to understand this node should not be called anymore.");
-        Thread.sleep(properties.getClientsReactionTimeMs());
-
-        strategies.forEach((s) -> {
-          try {
-            s.clientReactionTimePassed();
-          } catch (Throwable t) {
-            log.error(t.getMessage(), t);
-          }
-        });
-
-        long start = System.currentTimeMillis();
-        List<GracefulShutdownStrategy> redLightStrategies = new ArrayList<>(strategies);
-
-        // increase timeout here
-        // now strategies could safely try to shut down within GracefulShutdownProperties.getStrategyShutdownTimeout()
-        int safeShutdownTimeoutMs = properties.getShutdownTimeoutMs() + 5000;
-        while (System.currentTimeMillis() - start < safeShutdownTimeoutMs) {
-          redLightStrategies = redLightStrategies.stream().filter((s) -> {
-            try {
-              return !s.canShutdown();
-            } catch (Throwable t) {
-              log.error(t.getMessage(), t);
-              return true;
-            }
-          }).collect(Collectors.toList());
-          if (redLightStrategies.isEmpty()) {
-            log.info("All strategies gave a green light for shutdown.");
-            break;
-          }
-          log.info("Not shutting down yet, {} strategies have red light. Waiting for {} ms for next check.",
-              redLightStrategies, properties.getStrategiesCheckIntervalTimeMs());
-          Thread.sleep(properties.getStrategiesCheckIntervalTimeMs());
+      for (var strategy : strategies) {
+        try {
+          strategy.prepareForShutdown();
+          log.debug("'prepareForShutdown' hook called for strategy '{}'", strategy);
+        } catch (Throwable t) {
+          log.error("Stopping strategy '{}' failed.", strategy, t);
         }
+      }
 
-        strategies.forEach((s) -> {
+      log.info("Waiting for " + properties.getClientsReactionTimeMs() + " ms for clients to understand"
+          + " this node should not be called anymore.");
+      Thread.sleep(properties.getClientsReactionTimeMs());
+
+      for (var strategy : strategies) {
+        try {
+          strategy.clientReactionTimePassed();
+          log.debug("'clientReactionTimePassed' hook called for strategy '{}'", strategy);
+        } catch (Throwable t) {
+          log.error("Notifying strategy '{}' about client reaction time passing failed.", strategy, t);
+        }
+      }
+
+      long canShutdownLoopStartTimeMs = System.currentTimeMillis();
+      List<GracefulShutdownStrategy> redLightStrategies = new ArrayList<>(strategies);
+
+      while (System.currentTimeMillis() - canShutdownLoopStartTimeMs < properties.getShutdownTimeoutMs()) {
+        redLightStrategies = redLightStrategies.stream().filter(strategy -> {
           try {
-            s.applicationTerminating();
+            return !strategy.canShutdown();
           } catch (Throwable t) {
-            log.error(t.getMessage(), t);
+            log.error("Checking if strategy '{}' can shutdown, failed.", strategy, t);
+            return true;
           }
-        });
+        }).collect(Collectors.toList());
 
-        log.info("Shutting down.");
-        started = false;
-      });
-    } else {
-      log.info("Already shutting down...");
+        if (redLightStrategies.isEmpty()) {
+          log.info("All strategies gave a green light for shutdown.");
+          break;
+        }
+        log.info("Not shutting down yet, '{}' strategies have red light. Waiting for {} ms for next check.",
+            redLightStrategies, properties.getStrategiesCheckIntervalTimeMs());
+
+        Thread.sleep(properties.getStrategiesCheckIntervalTimeMs());
+      }
+
+      for (var strategy : strategies) {
+        try {
+          strategy.applicationTerminating();
+          log.debug("'applicationTerminating' hook called for strategy '{}'", strategy);
+        } catch (Throwable t) {
+          log.error("Notifying strategy '{}' about termination, failed.", strategy, t);
+        }
+      }
+
+      log.info("Graceful shutdown routine finished in {} ms.", System.currentTimeMillis() - startTimeMs);
+    } catch (Throwable t) {
+      if (t instanceof InterruptedException) {
+        Thread.currentThread().interrupt();
+      }
+      log.error("Graceful shutdown failed in {} ms.", System.currentTimeMillis() - startTimeMs, t);
     }
   }
 
   @Override
   public boolean isRunning() {
-    return started;
+    return running;
   }
 
   @Override
@@ -138,29 +144,12 @@ public class GracefulShutdowner implements ApplicationListener<ApplicationReadyE
     return true;
   }
 
+  /**
+   * Start as last, stop as first.
+   */
   @Override
   public int getPhase() {
     return Integer.MAX_VALUE;
   }
 
-  @Order(Ordered.HIGHEST_PRECEDENCE)
-  @EventListener(ContextClosedEvent.class)
-  public void onApplicationEvent(ContextClosedEvent event) {
-    if (event.getApplicationContext() == applicationContext) {
-      stop();
-    }
-  }
-
-  @Override
-  public void onApplicationEvent(ApplicationReadyEvent event) {
-    if (event.getApplicationContext() == applicationContext) {
-      started = true;
-      try {
-        gracefulShutdownStrategiesRegistry.getStrategies().forEach(GracefulShutdownStrategy::applicationStarted);
-      } catch (Throwable t) {
-        log.error(t.getMessage(), t);
-        SpringApplication.exit(applicationContext, () -> 1);
-      }
-    }
-  }
 }

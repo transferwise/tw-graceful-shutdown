@@ -23,9 +23,8 @@ public class DefaultGracefulShutdownStrategiesRegistry implements GracefulShutdo
       AnnotationAwareOrderComparator.sort(strategies);
 
       this.strategies = strategies;
-
-      log.info("Following strategies were detected: '" + strategies + "'.");
     }
+    
     return strategies;
   }
 }
