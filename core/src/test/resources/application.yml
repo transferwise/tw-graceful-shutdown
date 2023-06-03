@@ -9,9 +9,9 @@ db-scheduler:
   delay-startup-until-context-ready: true
   
 tw-graceful-shutdown:
-  shutdownTimeoutMs: 15000
-  clientsReactionTimeMs: 1
-  strategiesCheckIntervalTimeMs: 500
+  shutdownTimeoutMs: 2000
+  clientsReactionTimeMs: 2000
+  strategiesCheckIntervalTimeMs: 250
 
   health-indicator.enabled: true
   request-count-strategy.enabled: true

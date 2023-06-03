@@ -15,17 +15,10 @@ public class TaskSchedulersGracefulShutdownStrategy extends BaseReactiveResource
 
   @Override
   protected Duration getStrategyShutdownDelay() {
-    // In case shutdown was called right after call to endpoint:
-    // this will give time for endpoint using ExecutorService to send task if required.
-
-    // This is for cases then app is configured incorrectly
-    if (getGracefulShutdownProperties().getClientsReactionTimeMs() > getResourceFullShutdownTimeoutMs()) {
-      return Duration.ofMillis(getResourceFullShutdownTimeoutMs());
-    }
-
-    // we give 1/3 of resource shutdown time to allow endpoints called right before client reaction
-    // to proceed and successfully submit tasks
-    return Duration.ofMillis(getGracefulShutdownProperties().getClientsReactionTimeMs() + getResourceFullShutdownTimeoutMs() / 3);
+    // Handling of @Scheduled annotation should stop immediately.
+    // Those are not related to clients' requests.
+    
+    return Duration.ofSeconds(0);
   }
 
   public TaskSchedulersGracefulShutdownStrategy(ApplicationContext applicationContext, GracefulShutdownProperties gracefulShutdownProperties) {
