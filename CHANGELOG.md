@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.14.0] - 2023-06-06
+
+### Changed
+
+- Changed they way how strategies are found.
+  Now, if there are circular dependencies, the application context starts to fail.
+  We will also validate, just in case, if the strategies set will change between bean initializations and application startup.
+
 ## [2.13.0] - 2023-05-31
 
 ### Changed
