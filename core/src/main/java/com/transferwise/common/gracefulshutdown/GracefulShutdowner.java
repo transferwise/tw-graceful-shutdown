@@ -35,9 +35,11 @@ public class GracefulShutdowner implements SmartLifecycle, InitializingBean {
 
   @Override
   public void afterPropertiesSet() {
-    log.info("Initialized graceful shutdown with timeout {} ms, client reaction timeout {} ms.",
+    log.info("Initialized graceful shutdown with timeout {} ms, client reaction timeout {} ms"
+            + " and strategies '{}'.",
         properties.getShutdownTimeoutMs(),
-        properties.getClientsReactionTimeMs());
+        properties.getClientsReactionTimeMs(),
+        gracefulShutdownStrategiesRegistry.getStrategies());
 
     defaultLifecycleProcessor.setTimeoutPerShutdownPhase(
         2L * (properties.getClientsReactionTimeMs() + properties.getShutdownTimeoutMs()));
@@ -48,8 +50,17 @@ public class GracefulShutdowner implements SmartLifecycle, InitializingBean {
     running = true;
 
     validateStrategies();
-    log.info("Notifying all strategies that the application has started. Strategies are: '{}'.", gracefulShutdownStrategiesRegistry.getStrategies());
-
+    
+    log.info("Notifying all strategies that the application has started.");
+    var strategies = gracefulShutdownStrategiesRegistry.getStrategies();
+    for (var strategy : strategies) {
+      try {
+        strategy.applicationStarted();
+        log.debug("'applicationStarted' hook called for strategy '{}'", strategy);
+      } catch (Exception e) {
+        throw new IllegalStateException("'applicationStarted' hook failed for strategy '" + strategy + "'.", e);
+      }
+    }
   }
 
   protected void validateStrategies() {
@@ -67,7 +78,6 @@ public class GracefulShutdowner implements SmartLifecycle, InitializingBean {
         var strategiesInAppContextList = ImmutableList.copyOf(strategiesInAppContext);
         AnnotationAwareOrderComparator.sort(strategiesInAppContextList);
         ((DefaultGracefulShutdownStrategiesRegistry) gracefulShutdownStrategiesRegistry).setStrategies(strategiesInAppContextList);
-
       }
     }
   }
