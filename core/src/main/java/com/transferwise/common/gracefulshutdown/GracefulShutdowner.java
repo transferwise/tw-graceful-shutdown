@@ -1,18 +1,26 @@
 package com.transferwise.common.gracefulshutdown;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.transferwise.common.gracefulshutdown.config.GracefulShutdownProperties;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.context.support.DefaultLifecycleProcessor;
+import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 
 @Slf4j
 public class GracefulShutdowner implements SmartLifecycle, InitializingBean {
+
+  @Autowired
+  private ApplicationContext applicationContext;
 
   @Autowired
   private GracefulShutdownProperties properties;
@@ -40,9 +48,10 @@ public class GracefulShutdowner implements SmartLifecycle, InitializingBean {
   @Override
   public void start() {
     running = true;
+
+    validateStrategies();
     
     log.info("Notifying all strategies that the application has started.");
-
     var strategies = gracefulShutdownStrategiesRegistry.getStrategies();
     for (var strategy : strategies) {
       try {
@@ -50,6 +59,25 @@ public class GracefulShutdowner implements SmartLifecycle, InitializingBean {
         log.debug("'applicationStarted' hook called for strategy '{}'", strategy);
       } catch (Exception e) {
         throw new IllegalStateException("'applicationStarted' hook failed for strategy '" + strategy + "'.", e);
+      }
+    }
+  }
+
+  protected void validateStrategies() {
+    var registeredStrategies = ImmutableSet.copyOf(gracefulShutdownStrategiesRegistry.getStrategies());
+    var strategiesInAppContext = ImmutableSet.copyOf(applicationContext.getBeansOfType(GracefulShutdownStrategy.class).values());
+
+    if (!registeredStrategies.equals(strategiesInAppContext)) {
+      log.error(
+          "Graceful shutdown strategies have changed between application initialization and runtime. This means, you have some kind of messed up "
+              + "beans configuration and you should fix it. Strategies before: {}, strategies after: {}.",
+          registeredStrategies, strategiesInAppContext);
+
+      if (gracefulShutdownStrategiesRegistry instanceof DefaultGracefulShutdownStrategiesRegistry) {
+        log.info("Replacing strategies with what we have now in app context.");
+        var strategiesInAppContextList = ImmutableList.copyOf(strategiesInAppContext);
+        AnnotationAwareOrderComparator.sort(strategiesInAppContextList);
+        ((DefaultGracefulShutdownStrategiesRegistry) gracefulShutdownStrategiesRegistry).setStrategies(strategiesInAppContextList);
       }
     }
   }
