@@ -17,7 +17,7 @@ public class GracefulShutdownHealthIndicator extends AbstractHealthIndicator {
    * E.g. some other strategy may inject something needing actuators, which in turn triggers creating the health indicators.
    * 
    * We could avoid this by for example sending out the list of all strategies in some callback method, e.g. "applicationStarted",
-   * but this solution seems a bit of over-engineering.
+   * but that kind of solution seems a bit of over-engineering.
    */
   @Lazy
   @Autowired
