@@ -6,10 +6,20 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.AbstractHealthIndicator;
 import org.springframework.boot.actuate.health.Health;
+import org.springframework.context.annotation.Lazy;
 
 @Slf4j
 public class GracefulShutdownHealthIndicator extends AbstractHealthIndicator {
 
+  /*
+   * We need to access the registry in a lazy way, otherwise we may easily run into circular dependencies with other strategies.
+   * 
+   * E.g. some other strategy may inject something needing actuators, which in turn triggers creating the health indicators.
+   * 
+   * We could avoid this by for example sending out the list of all strategies in some callback method, e.g. "applicationStarted",
+   * but that kind of solution seems a bit of over-engineering.
+   */
+  @Lazy
   @Autowired
   private GracefulShutdownStrategiesRegistry registry;
 

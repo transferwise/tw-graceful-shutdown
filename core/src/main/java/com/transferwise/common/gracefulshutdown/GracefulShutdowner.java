@@ -1,12 +1,10 @@
 package com.transferwise.common.gracefulshutdown;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.transferwise.common.gracefulshutdown.config.GracefulShutdownProperties;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
@@ -50,7 +48,7 @@ public class GracefulShutdowner implements SmartLifecycle, InitializingBean {
     running = true;
 
     validateStrategies();
-    
+
     log.info("Notifying all strategies that the application has started.");
     var strategies = gracefulShutdownStrategiesRegistry.getStrategies();
     for (var strategy : strategies) {
@@ -75,7 +73,7 @@ public class GracefulShutdowner implements SmartLifecycle, InitializingBean {
 
       if (gracefulShutdownStrategiesRegistry instanceof DefaultGracefulShutdownStrategiesRegistry) {
         log.info("Replacing strategies with what we have now in app context.");
-        var strategiesInAppContextList = ImmutableList.copyOf(strategiesInAppContext);
+        var strategiesInAppContextList = new ArrayList<>(strategiesInAppContext);
         AnnotationAwareOrderComparator.sort(strategiesInAppContextList);
         ((DefaultGracefulShutdownStrategiesRegistry) gracefulShutdownStrategiesRegistry).setStrategies(strategiesInAppContextList);
       }
