@@ -53,7 +53,7 @@ class TaskSchedulersGracefulShutdownStrategyTest {
     );
     ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
     threadPoolTaskScheduler.initialize();
-    strategy.addTaskScheduler(threadPoolTaskScheduler);
+    strategy.addResource(threadPoolTaskScheduler);
 
     // WHEN
     strategy.prepareForShutdown();
@@ -74,7 +74,7 @@ class TaskSchedulersGracefulShutdownStrategyTest {
     );
     ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
     threadPoolTaskScheduler.initialize();
-    strategy.addTaskScheduler(threadPoolTaskScheduler);
+    strategy.addResource(threadPoolTaskScheduler);
     threadPoolTaskScheduler.execute(() -> {
       try {
         Thread.sleep(checkMaxWaitTime.toMillis());

@@ -10,6 +10,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Changed
 
 * Add support for Spring Boot 3.2 and bump some dependencies.
+  * In Spring Boot 3.2 logic for assigning a scheduler for executing `@Scheduled` annotated methods changed, so needed to refactored auto configuration and shutdown logic of `TaskSchedulersGracefulShutdownStrategy` to always ask the `ScheduledTaskRegistrar` for the actual `TaskScheduler` before shutting it down.
+  * Add support for `TaskSchedulerRouter` in `TaskSchedulersGracefulShutdownStrategy`
 
 ## [2.14.2] - 2023-07-28
 
