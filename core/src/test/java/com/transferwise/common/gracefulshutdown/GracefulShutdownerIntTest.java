@@ -14,6 +14,7 @@ import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.Status;
+import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ActiveProfiles;
 
 @BaseTestEnvironment
@@ -37,6 +38,8 @@ class GracefulShutdownerIntTest {
   private TaskSchedulersGracefulShutdownStrategy taskSchedulersGracefulShutdownStrategy;
   @Autowired
   private TestApplication testApplication;
+  @Autowired
+  private ApplicationContext context;
 
   @Test
   @SneakyThrows

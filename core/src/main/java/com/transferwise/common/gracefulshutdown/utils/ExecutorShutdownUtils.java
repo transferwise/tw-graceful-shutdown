@@ -1,5 +1,6 @@
 package com.transferwise.common.gracefulshutdown.utils;
 
+import com.transferwise.common.baseutils.concurrency.ScheduledTaskExecutor;
 import java.lang.reflect.Method;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
@@ -19,6 +20,7 @@ public abstract class ExecutorShutdownUtils {
    *                                     contact SRE
    */
   public static void shutdownExecutor(Executor executor, boolean askToReportOnUnknownExecutor) {
+
     if (executor instanceof ThreadPoolTaskScheduler) {
       log.info("Shutting down thread pool task scheduler '{}'.", executor);
       shutdownThreadPoolTaskScheduler((ThreadPoolTaskScheduler) executor);
@@ -139,4 +141,5 @@ public abstract class ExecutorShutdownUtils {
     scheduledThreadPoolExecutor.getQueue().clear();
     scheduledThreadPoolExecutor.shutdown();
   }
+
 }

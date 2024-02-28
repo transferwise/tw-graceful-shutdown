@@ -1,15 +1,13 @@
-package com.transferwise.common.gracefulshutdown.test;
+package com.transferwise.common.gracefulshutdown.testcustomscheduler;
 
 import java.util.concurrent.Executors;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.SchedulingConfigurer;
 
 // More customized scheduling is set up.
-@SpringBootApplication
-@EnableScheduling
-public class TestBApplication {
+@Configuration
+public class CustomSchedulerConfiguration {
 
   @Bean
   public SchedulingConfigurer mySchedulingConfigurer() {

@@ -116,7 +116,7 @@ public class GracefulShutdownAutoConfiguration {
   }
 
   @Configuration
-  @ConditionalOnBean(type = "org.springframework.scheduling.TaskScheduler")
+  @ConditionalOnBean(type = {"org.springframework.scheduling.annotation.ScheduledAnnotationBeanPostProcessor"})
   @ConditionalOnProperty(value = "tw-graceful-shutdown.spring-task-scheduler.enabled", matchIfMissing = true)
   protected static class SpringTaskSchedulerConfiguration {
 
@@ -126,27 +126,12 @@ public class GracefulShutdownAutoConfiguration {
         @Autowired GracefulShutdownProperties gracefulShutdownProperties) {
       return new TaskSchedulersGracefulShutdownStrategy(applicationContext, gracefulShutdownProperties);
     }
-  }
-
-  @Configuration
-  @ConditionalOnMissingBean(type = "org.springframework.scheduling.TaskScheduler")
-  @ConditionalOnBean(type = {"org.springframework.scheduling.annotation.ScheduledAnnotationBeanPostProcessor",
-      "org.springframework.scheduling.annotation.SchedulingConfigurer"})
-  @ConditionalOnProperty(value = "tw-graceful-shutdown.spring-task-scheduler.enabled", matchIfMissing = true)
-  protected static class SpringTaskSchedulerAlternativeConfiguration {
 
     @Bean
-    public TaskSchedulersGracefulShutdownStrategy taskSchedulersGracefulShutdownStrategy(
-        @Autowired ApplicationContext applicationContext,
-        @Autowired GracefulShutdownProperties gracefulShutdownProperties) {
-      return new TaskSchedulersGracefulShutdownStrategy(applicationContext, gracefulShutdownProperties);
-    }
-
-    @Bean
-    @Order
     public SchedulingConfigurer twGsSchedulingConfigurer(TaskSchedulersGracefulShutdownStrategy taskSchedulersGracefulShutdownStrategy) {
-      return taskRegistrar -> taskSchedulersGracefulShutdownStrategy.addResource(taskRegistrar.getScheduler());
+      return taskSchedulersGracefulShutdownStrategy::setTaskRegistrar;
     }
+
   }
 
   @Configuration
