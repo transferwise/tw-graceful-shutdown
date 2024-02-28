@@ -29,14 +29,16 @@ public class TaskSchedulersGracefulShutdownStrategy extends BaseReactiveResource
     Field field = null;
     Method method = null;
     try {
-      clazz = Class.forName("org.springframework.scheduling.config.TaskSchedulerRouter", true, ExecutorShutdownUtils.class.getClassLoader());
+      clazz = Class.forName("org.springframework.scheduling.config.TaskSchedulerRouter", true,
+          ExecutorShutdownUtils.class.getClassLoader());
       field = clazz.getDeclaredField("localExecutor");
       field.setAccessible(true);
       method = clazz.getDeclaredMethod("destroy");
     } catch (ClassNotFoundException e) {
       // ignore as it's normal in pre Spring 6.1 environment.
     } catch (NoSuchFieldException | NoSuchMethodException e) {
-      throw new RuntimeException("org.springframework.scheduling.config.TaskSchedulerRouter class is missing expected field or method. Contact the SRE team.", e);
+      throw new RuntimeException("org.springframework.scheduling.config.TaskSchedulerRouter class is missing expected field or method. "
+          + "Contact the SRE team.", e);
     }
     taskSchedulerRouter = clazz;
     taskSchedulerRouterLocalExecutorField = field;
@@ -64,6 +66,7 @@ public class TaskSchedulersGracefulShutdownStrategy extends BaseReactiveResource
       if (resource instanceof Executor) {
         ExecutorShutdownUtils.shutdownExecutor((Executor) resource, false);
       } else if (taskSchedulerRouter != null && taskSchedulerRouter.isInstance(resource)) {
+        log.info("Shutting down TaskSchedulerRouter {}", resource);
         shutdownTaskSchedulerRouter(resource);
       } else {
         log.info("Shutting down unknown task scheduler '{}' using it's 'shutdown()' method.", resource);
@@ -78,6 +81,7 @@ public class TaskSchedulersGracefulShutdownStrategy extends BaseReactiveResource
       if (resource instanceof Executor) {
         ExecutorShutdownUtils.shutdownExecutorForced((Executor) resource);
       } else if (taskSchedulerRouter != null && taskSchedulerRouter.isInstance(resource)) {
+        log.info("Force shutting down TaskSchedulerRouter {}", resource);
         shutdownTaskSchedulerRouterForced(resource);
       } else {
         log.warn("Unknown TaskScheduler to force shutdown: {}. Skipping.", resource.getClass());
