@@ -14,7 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
-import org.springframework.scheduling.config.Task;
 import reactor.core.publisher.Mono;
 
 @Slf4j
@@ -94,6 +93,8 @@ public class TaskSchedulersGracefulShutdownStrategy extends BaseReactiveResource
     return Mono.fromCallable(() -> {
       if (resource instanceof Executor) {
         return ExecutorShutdownUtils.isTerminated((Executor) resource);
+      } else if (taskSchedulerRouter != null && taskSchedulerRouter.isInstance(resource)) {
+        return getTaskSchedulerRouterTerminationStatus(resource);
       } else {
         log.warn("Unknown TaskScheduler to check termination: {}. Return true.", resource.getClass());
         return true;
@@ -132,6 +133,18 @@ public class TaskSchedulersGracefulShutdownStrategy extends BaseReactiveResource
     } catch (IllegalAccessException | InvocationTargetException e) {
       log.warn("Couldn't force shutdown TaskSchedulerRouter during graceful shutdown", e);
     }
+  }
+
+  private boolean getTaskSchedulerRouterTerminationStatus(TaskScheduler scheduler) {
+    try {
+      Executor executor = (Executor) taskSchedulerRouterLocalExecutorField.get(scheduler);
+      if (executor != null) {
+        return ExecutorShutdownUtils.isTerminated(executor);
+      }
+    } catch (IllegalAccessException e) {
+      log.warn("Couldn't get TaskSchedulerRouter termination status during graceful shutdown", e);
+    }
+    return true;
   }
 
 }
