@@ -1,10 +1,12 @@
 import org.eclipse.jgit.api.errors.RefAlreadyExistsException
+import com.github.spotbugs.snom.Confidence
+import com.github.spotbugs.snom.Effort
 
 plugins {
-	id "com.github.spotbugs" version "5.0.14" apply false
+	id "com.github.spotbugs" version "6.0.+"
 	id "idea"
-	id 'org.ajoberstar.grgit' version '5.2.0'
-	id 'io.github.gradle-nexus.publish-plugin' version "1.1.0"
+	id 'org.ajoberstar.grgit' version '5.3.0'
+	id 'io.github.gradle-nexus.publish-plugin' version "2.0.0"
 }
 
 idea.project {
@@ -37,4 +39,9 @@ nexusPublishing {
 			password = System.getenv("SONATYPE_PASSWORD")
 		}
 	}
+}
+
+spotbugs {
+    effort = Effort.valueOf('MAX')
+    reportLevel = Confidence.valueOf('DEFAULT')
 }

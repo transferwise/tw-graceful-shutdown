@@ -13,9 +13,9 @@ public class GracefulShutdownHealthIndicator extends AbstractHealthIndicator {
 
   /*
    * We need to access the registry in a lazy way, otherwise we may easily run into circular dependencies with other strategies.
-   * 
+   *
    * E.g. some other strategy may inject something needing actuators, which in turn triggers creating the health indicators.
-   * 
+   *
    * We could avoid this by for example sending out the list of all strategies in some callback method, e.g. "applicationStarted",
    * but that kind of solution seems a bit of over-engineering.
    */
@@ -28,7 +28,7 @@ public class GracefulShutdownHealthIndicator extends AbstractHealthIndicator {
 
   private RateLimiter logsRateLimiter = RateLimiter.create(0.2);
 
-  private boolean ready;
+  private volatile boolean ready;
 
   @Override
   protected void doHealthCheck(Health.Builder builder) {
@@ -36,7 +36,7 @@ public class GracefulShutdownHealthIndicator extends AbstractHealthIndicator {
       for (GracefulShutdownStrategy strategy : registry.getStrategies()) {
         if (!strategy.isReady()) {
           if (logsRateLimiter.tryAcquire()) {
-            log.info("" + strategy + " is not ready. Not considering application ready yet.");
+            log.info("{} is not ready. Not considering application ready yet.", strategy);
           }
           builder.down();
           return;

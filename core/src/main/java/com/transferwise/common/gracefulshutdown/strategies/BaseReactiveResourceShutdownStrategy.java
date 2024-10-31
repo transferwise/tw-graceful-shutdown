@@ -3,6 +3,7 @@ package com.transferwise.common.gracefulshutdown.strategies;
 import com.transferwise.common.gracefulshutdown.GracefulShutdownIgnore;
 import com.transferwise.common.gracefulshutdown.GracefulShutdownStrategy;
 import com.transferwise.common.gracefulshutdown.config.GracefulShutdownProperties;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -23,6 +24,7 @@ import reactor.core.scheduler.Schedulers;
 @Slf4j
 public abstract class BaseReactiveResourceShutdownStrategy<T> implements GracefulShutdownStrategy {
 
+  @SuppressFBWarnings("CT")
   public BaseReactiveResourceShutdownStrategy(@NonNull Class<T> resourceType, @NonNull ApplicationContext applicationContext,
       @NonNull GracefulShutdownProperties gracefulShutdownProperties) {
     this.resourceType = resourceType;
