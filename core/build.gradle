@@ -46,6 +46,7 @@ dependencies {
     implementation libraries.springWeb
     implementation libraries.reactorCore
     implementation libraries.guava
+    implementation libraries.wiseEnvironmentStarter
 
     compileOnly libraries.dbSchedulerSpringBootStarter
     compileOnly libraries.springContext

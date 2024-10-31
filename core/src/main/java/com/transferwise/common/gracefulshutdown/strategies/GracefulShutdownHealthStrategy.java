@@ -1,8 +1,11 @@
 package com.transferwise.common.gracefulshutdown.strategies;
 
 import com.transferwise.common.gracefulshutdown.GracefulShutdownStrategy;
+import com.transferwise.common.gracefulshutdown.config.GracefulShutdownProperties;
+import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Slf4j
 public class GracefulShutdownHealthStrategy implements GracefulShutdownStrategy {
@@ -11,13 +14,21 @@ public class GracefulShutdownHealthStrategy implements GracefulShutdownStrategy 
   private volatile boolean shutdownInProgress;
 
   @Getter
-  private volatile boolean startupInProgress = true;
+  private volatile Long startupTime = null;
+
+  private AtomicBoolean readyDeclared = new AtomicBoolean(false);
+
+  @Autowired
+  private GracefulShutdownProperties gracefulShutdownProperties;
 
   @Override
   public void applicationStarted() {
-    log.info("Considering Service as fully started. Starting to broadcast UP state.");
-    startupInProgress = false;
+    startupTime = System.currentTimeMillis();
     shutdownInProgress = false;
+
+    if (gracefulShutdownProperties.getStartupHealthyDelayMs() > 0) {
+      log.info("Creating artificial delay of {} ms before allowing to report healthy status.", gracefulShutdownProperties.getStartupHealthyDelayMs());
+    }
   }
 
   @Override
@@ -33,6 +44,12 @@ public class GracefulShutdownHealthStrategy implements GracefulShutdownStrategy 
 
   @Override
   public boolean isReady() {
-    return !startupInProgress;
+    var ready = startupTime != null && System.currentTimeMillis() - startupTime > gracefulShutdownProperties.getStartupHealthyDelayMs();
+
+    if (!readyDeclared.getAndSet(true)) {
+      log.info("Considering Service as fully started. Starting to broadcast UP state.");
+    }
+
+    return ready;
   }
 }

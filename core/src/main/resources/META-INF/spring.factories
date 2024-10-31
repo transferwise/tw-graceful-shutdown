@@ -1,1 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=com.transferwise.common.gracefulshutdown.GracefulShutdownAutoConfiguration
+org.springframework.boot.env.EnvironmentPostProcessor=com.transferwise.common.gracefulshutdown.config.GracefulShutdownEnvironmentPostProcessor

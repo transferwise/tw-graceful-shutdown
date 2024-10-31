@@ -8,7 +8,7 @@ group = 'com.transferwise.common'
 apply from: "${project.rootDir}/build.libraries.gradle"
 
 configurations {
-    all {
+    configureEach {
         exclude module: 'slf4j-log4j12'
 
         resolutionStrategy {
@@ -90,7 +90,7 @@ test {
     useJUnitPlatform()
 }
 
-tasks.withType(Checkstyle) {
+tasks.withType(Checkstyle).configureEach {
     config = resources.text.fromFile(file('../google_checks.xml'))
     maxWarnings = 0
 
@@ -101,7 +101,6 @@ tasks.withType(Checkstyle) {
 }
 
 tasks.findAll { it.name.startsWith("spotbugs") }*.configure {
-    effort = "max"
     excludeFilter = file('../spotbugs-exclude.xml')
 
     reports {

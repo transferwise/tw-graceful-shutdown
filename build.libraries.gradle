@@ -3,7 +3,7 @@ ext {
 
     libraries = [
             // version defined
-            awaitility                      : 'org.awaitility:awaitility:4.2.0',
+            awaitility                      : 'org.awaitility:awaitility:4.2.2',
             dbScheduler                     : 'com.github.kagkarlsson:db-scheduler:12.1.0',
             dbSchedulerSpringBootStarter    : 'com.github.kagkarlsson:db-scheduler-spring-boot-starter:12.1.0',
             guava                           : 'com.google.guava:guava:33.0.0-jre',
@@ -13,7 +13,8 @@ ext {
             jakartaServletApi               : 'jakarta.servlet:jakarta.servlet-api:6.0.0',
             spotbugsAnnotations             : "com.github.spotbugs:spotbugs-annotations:${spotbugs.toolVersion.get()}",
             springBootDependencies          : "org.springframework.boot:spring-boot-dependencies:${springBootVersion}",
-            twBaseUtils                     : 'com.transferwise.common:tw-base-utils:1.12.4',
+            twBaseUtils                     : 'com.transferwise.common:tw-base-utils:1.13.0',
+            wiseEnvironmentStarter          : "com.transferwise.common:wise-environment-starter:0.0.3",
 
             // versions managed by spring-boot-dependencies platform
             flywayCore                      : 'org.flywaydb:flyway-core',

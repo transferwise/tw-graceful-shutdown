@@ -20,6 +20,10 @@ public class GracefulShutdownProperties {
 
   private int resourceCheckIntervalTimeMs = 250;
 
+  // Usually services start tons of background tasks, which can overwhelm JIT queues and class loadings.
+  // We would create artificial delay, before we allow latency sensitive REST calls in.
+  private int startupHealthyDelayMs = 0;
+
   private FlagProperty healthIndicator;
   private FlagProperty requestCountStrategy;
   private FlagProperty kagkarlssonDbScheduler;
