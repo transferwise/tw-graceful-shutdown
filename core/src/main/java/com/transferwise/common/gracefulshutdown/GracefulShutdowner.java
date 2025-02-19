@@ -47,7 +47,7 @@ public class GracefulShutdowner implements SmartLifecycle, InitializingBean {
   @Override
   public void start() {
     running = true;
-    initShutdownSignalLogging(new Signal("INT"), new Signal("QUIT"), new Signal("TERM"), new Signal("KILL"));
+    initShutdownSignalLogging(new Signal("INT"), new Signal("TERM"));
 
     validateStrategies();
 
