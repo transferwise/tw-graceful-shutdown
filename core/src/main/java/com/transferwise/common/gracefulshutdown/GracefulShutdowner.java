@@ -13,6 +13,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.context.support.DefaultLifecycleProcessor;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
+import sun.misc.Signal;
 
 @Slf4j
 public class GracefulShutdowner implements SmartLifecycle, InitializingBean {
@@ -46,6 +47,7 @@ public class GracefulShutdowner implements SmartLifecycle, InitializingBean {
   @Override
   public void start() {
     running = true;
+    initShutdownSignalLogging(new Signal("INT"), new Signal("TERM"));
 
     validateStrategies();
 
@@ -58,6 +60,13 @@ public class GracefulShutdowner implements SmartLifecycle, InitializingBean {
       } catch (Exception e) {
         throw new IllegalStateException("'applicationStarted' hook failed for strategy '" + strategy + "'.", e);
       }
+    }
+  }
+
+  protected void initShutdownSignalLogging(Signal... signals) {
+    for (var signal : signals) {
+      log.info("Registering shutdown signal handler for signal '{}'", signal.toString());
+      Signal.handle(signal, sig -> log.info("Received signal {}", sig.toString()));
     }
   }
 
