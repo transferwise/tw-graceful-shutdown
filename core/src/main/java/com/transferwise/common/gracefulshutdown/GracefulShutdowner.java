@@ -65,6 +65,7 @@ public class GracefulShutdowner implements SmartLifecycle, InitializingBean {
 
   protected void initShutdownSignalLogging(Signal... signals) {
     for (var signal : signals) {
+      log.info("Registering shutdown signal handler for signal '{}'", signal.toString());
       Signal.handle(signal, sig -> log.info("Received signal {}", sig.toString()));
     }
   }
