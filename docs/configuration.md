@@ -47,10 +47,11 @@ When set to `true` or left unset, it creates the `TaskSchedulersGracefulShutdown
 ```yaml
 tw-graceful-shutdown:
   executor-service:
-    enabled: [true|false] # default is true
+    enabled: [true|false] # default is false
 ```
 
-When set to `true` or left unset, it creates the `ExecutorServiceGracefulShutdownStrategy` bean conditionally on the presence of the `java.util.concurrent.ExecutorService` class.
+When set to `true`, it creates the `ExecutorServiceGracefulShutdownStrategy` bean conditionally on the presence of the `java.util.concurrent.ExecutorService` class.
+The default was changed to `false` in this PR: https://github.com/transferwise/tw-graceful-shutdown/pull/37
 
 ### Request Count Strategy
 ```yaml
