@@ -71,7 +71,6 @@ dependencies {
     testRuntimeOnly libraries.springBootStarterJdbc
     testRuntimeOnly libraries.h2
     testRuntimeOnly "org.flywaydb:flyway-core"
-    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 
     testCompileOnly libraries.spotbugsAnnotations
 
