@@ -81,5 +81,5 @@ dependencies {
     test2Implementation libraries.springBootStarterTest
     test2Implementation libraries.awaitility
 
-    test2Runtime libraries.junitPlatformLauncher
+    test2RuntimeOnly libraries.junitPlatformLauncher
 }
