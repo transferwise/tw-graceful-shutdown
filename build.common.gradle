@@ -71,10 +71,6 @@ dependencies {
     local platform(libraries.springBootDependencies)
     local libraries.lombok
     compileOnly libraries.spotbugsAnnotations
-
-    testRuntimeOnly libraries.junitPlatformLauncher
-    testCompileOnly libraries.junitPlatformEngine
-    testRuntimeOnly libraries.junitJupiter
 }
 
 compileJava {

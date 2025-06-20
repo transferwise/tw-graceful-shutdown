@@ -31,8 +31,6 @@ ext {
             springContext                   : 'org.springframework:spring-context',
             springWeb                       : 'org.springframework:spring-web',
             reactorCore                     : 'io.projectreactor:reactor-core',
-            junitPlatformLauncher           : 'org.junit.platform:junit-platform-launcher:1.12.2',
-            junitPlatformEngine             : 'org.junit.platform:junit-platform-engine:1.12.2',
-            junitJupiter                    : 'org.junit.jupiter:junit-jupiter:1.12.2',
+            junitPlatformLauncher           : 'org.junit.platform:junit-platform-launcher',
     ]
 }
