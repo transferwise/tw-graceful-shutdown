@@ -1,6 +1,5 @@
 ext {
-    springBootVersion = "${System.getenv("SPRING_BOOT_VERSION") ?: '3.3.1'}"
-
+    springBootVersion = "${System.getenv("SPRING_BOOT_VERSION") ?: '3.4.6'}"
     libraries = [
             // version defined
             awaitility                      : 'org.awaitility:awaitility:4.2.2',
@@ -32,5 +31,6 @@ ext {
             springContext                   : 'org.springframework:spring-context',
             springWeb                       : 'org.springframework:spring-web',
             reactorCore                     : 'io.projectreactor:reactor-core',
+            junitPlatformLauncher           : 'org.junit.platform:junit-platform-launcher',
     ]
 }

@@ -17,7 +17,7 @@ sourceSets {
 
 configurations {
     test2Implementation.extendsFrom implementation, local
-    test2Runtime.extendsFrom runtime, local
+    test2Runtime.extendsFrom runtime, local, testRuntimeOnly
 }
 
 task test2(type: Test) {
@@ -71,6 +71,7 @@ dependencies {
     testRuntimeOnly libraries.springBootStarterJdbc
     testRuntimeOnly libraries.h2
     testRuntimeOnly "org.flywaydb:flyway-core"
+    testRuntimeOnly libraries.junitPlatformLauncher
 
     testCompileOnly libraries.spotbugsAnnotations
 
@@ -79,4 +80,6 @@ dependencies {
 
     test2Implementation libraries.springBootStarterTest
     test2Implementation libraries.awaitility
+
+    test2RuntimeOnly libraries.junitPlatformLauncher
 }
